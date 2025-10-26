@@ -1,0 +1,67 @@
+<!--?xml version="1.0" encoding="utf-8"?-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-label="যুগ-জিজ্ঞাসা logo">
+  <defs>
+    <linearGradient id="gradG" x1="0%" x2="100%">
+      <stop offset="0%" stop-color="#0B6E4F"></stop>
+      <stop offset="100%" stop-color="#0B8A62"></stop>
+    </linearGradient>
+
+    <!-- crescent mask: draw full circle then cut smaller -->
+    <mask id="crescentMask">
+      <rect width="100%" height="100%" fill="black"></rect>
+      <!-- full circle visible -->
+      <circle cx="120" cy="120" r="90" fill="white"></circle>
+      <!-- subtract smaller circle (black in mask) -->
+      <circle cx="160" cy="100" r="60" fill="black"></circle>
+    </mask>
+
+    <!-- subtle book shadow -->
+    <filter id="bookShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.12"></feDropShadow>
+    </filter>
+  </defs>
+
+  <!-- background is transparent -->
+
+  <!-- left symbol: crescent + open book -->
+  <g transform="translate(40,40)">
+    <!-- crescent created with mask -->
+    <g mask="url(#crescentMask)">
+      <circle cx="120" cy="120" r="90" fill="url(#gradG)"></circle>
+    </g>
+
+    <!-- open book -->
+    <g transform="translate(220,70)" filter="url(#bookShadow)">
+      <!-- left page -->
+      <path d="M0 15 C28 0, 68 0, 100 15 L100 85 C68 75, 28 75, 0 85 Z" fill="#F7F3EA" stroke="#0B6E4F" stroke-width="4"></path>
+      <!-- right page -->
+      <path d="M100 15 C132 0, 172 0, 200 15 L200 85 C172 75, 132 75, 100 85 Z" fill="#ffffff" stroke="#0B6E4F" stroke-width="4"></path>
+      <!-- center spine -->
+      <line x1="100" y1="22" x2="100" y2="78" stroke="#0B6E4F" stroke-width="2"></line>
+      <!-- faint lines on pages -->
+      <g opacity="0.18" stroke="#0B6E4F" stroke-width="1.2" transform="translate(15,30)">
+        <path d="M0 0 Q40 6, 85 0"></path>
+        <path d="M0 12 Q40 18, 85 12"></path>
+        <path d="M115 0 Q155 6, 200 0"></path>
+        <path d="M115 12 Q155 18, 200 12"></path>
+      </g>
+    </g>
+  </g>
+
+  <!-- brand text (Bengali) -->
+  <g transform="translate(480,155)">
+    <text x="0" y="0" font-family="Noto Sans Bengali, 'SolaimanLipi', 'Poppins', sans-serif" font-size="56" fill="#111" font-weight="700">
+      যুগ-জিজ্ঞাসা
+    </text>
+    <text x="0" y="44" font-family="Noto Sans Bengali, 'SolaimanLipi', sans-serif" font-size="18" fill="#0B6E4F">
+      ইসলামিক মাসায়েল ও জিজ্ঞাসা
+    </text>
+  </g>
+
+  <!-- optional small English subtitle -->
+  <g transform="translate(480,230)">
+    <text x="0" y="0" font-family="Poppins, sans-serif" font-size="16" fill="#666">
+      Jug-Jiggasha — Islamic Q&amp;A
+    </text>
+  </g>
+</svg>

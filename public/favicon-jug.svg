@@ -1,0 +1,33 @@
+<!--?xml version="1.0" encoding="utf-8"?-->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="যুগ-জিজ্ঞাসা favicon">
+  <defs>
+    <linearGradient id="gradF" x1="0%" x2="100%">
+      <stop offset="0%" stop-color="#0B6E4F"></stop>
+      <stop offset="100%" stop-color="#0B8A62"></stop>
+    </linearGradient>
+    <mask id="crescentMask">
+      <rect width="100%" height="100%" fill="black"></rect>
+      <circle cx="80" cy="80" r="60" fill="white"></circle>
+      <circle cx="110" cy="60" r="40" fill="black"></circle>
+    </mask>
+  </defs>
+
+  <!-- background rounded -->
+  <rect width="256" height="256" rx="36" fill="#F7F3EA"></rect>
+
+  <!-- crescent -->
+  <g mask="url(#crescentMask)">
+    <circle cx="80" cy="80" r="60" fill="url(#gradF)"></circle>
+  </g>
+
+  <!-- tiny book inside crescent -->
+  <g transform="translate(150,140) scale(0.9)">
+    <path d="M-40 -10 C-12 -20, 28 -20, 60 -10 L60 40 C28 30, -12 30, -40 40 Z" fill="#ffffff" stroke="#0B6E4F" stroke-width="3"></path>
+    <line x1="10" y1="-6" x2="10" y2="30" stroke="#0B6E4F" stroke-width="2"></line>
+  </g>
+
+  <!-- full Bengali text -->
+  <text x="20" y="240" font-family="Noto Sans Bengali, 'SolaimanLipi', sans-serif" font-size="28" fill="#0B6E4F" font-weight="700">
+    যুগ-জিজ্ঞাসা
+  </text>
+</svg>
