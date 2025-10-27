@@ -184,7 +184,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Heart className="h-16 w-16 mx-auto mb-6 text-red-300" />
-            <h2 className="text-3xl font-bold mb-4 bangla-text">মদিনাতুল উলূম মাদরাসায় দান করুন</h2>
+            <h2 className="text-3xl font-bold mb-4 bangla-text">জামিয়াতুল মাদীনা মনোহরদী মাদরাসায় দান করুন</h2>
             <p className="text-xl mb-8 text-green-100 bangla-text max-w-3xl mx-auto">
               এই মাদরাসায় শতাধিক গরীব মেধাবী শিক্ষার্থী ইসলামী ও আধুনিক শিক্ষা গ্রহণ করছে। 
               আপনার দান তাদের শিক্ষা কার্যক্রম চালু রাখতে সহায়তা করবে।
