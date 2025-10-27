@@ -22,17 +22,17 @@ export default defineConfig({
         categories: ['education', 'religious'],
         icons: [
           {
-            src: 'favicon-jug.svg',
+            src: 'jugjiggasha-app-logo.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'favicon-jug.svg',
+            src: 'jugjiggasha-app-logo.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'favicon-jug.svg',
+            src: 'jugjiggasha-app-logo.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
