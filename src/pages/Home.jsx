@@ -15,7 +15,7 @@ const Home = () => {
       type: "donate"
     },
     {
-      text: "ইসলামী শিক্ষা বিস্তারে আপনার সহযোগিতা প্রয়োজন",
+      text: "দ্বীনি শিক্ষা বিস্তারে আপনার সহযোগিতা প্রয়োজন",
       type: "info"
     }
   ];
@@ -80,7 +80,7 @@ const Home = () => {
               <div className="bg-green-800 inline-flex items-center px-6 py-3 rounded-full mb-4">
                 <BookOpen className="h-6 w-6 mr-2" />
                 <span className="text-lg font-semibold bangla-text">
-                  মদিনাতুল উলূম মাদরাসা
+                  জামিয়াতুল মাদীনা মনোহরদী
                 </span>
               </div>
               <p className="text-green-200 text-lg bangla-text max-w-2xl mx-auto">
