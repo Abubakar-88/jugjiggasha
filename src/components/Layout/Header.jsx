@@ -23,11 +23,11 @@ const Header = () => {
           {/* Logo - Fixed Size */}
           <div className="flex-shrink-0 flex items-center">
             <Link to="/" className="flex items-center">
-              <img
-                className="h-19 w-auto sm:h-20 mb-8" 
-                src="/Jugjiggasha-h-logo.png" 
-                alt="ইসলামী মাসআলা" 
-              />
+           <img
+                className="h-14 sm:h-17 md:h-21 w-auto object-contain"
+                src="/Jugjiggasha-h-logo.png"
+                alt="যুগ-জিজ্ঞাসা"
+                />
               {/* Optional: Add text logo for smaller screens */}
               {/* <span className="ml-0 text-lg font-bold text-green-600 bangla-text md:hidden">
                 মাসআলা
