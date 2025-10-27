@@ -9,6 +9,7 @@ import About from './pages/About';
 import IslamicQuestions from './pages/Islamic/IslamicQuestions';
 import AskIslamicQuestion from './pages/Islamic/AskIslamicQuestion';
 import ProtectedRoute from './components/Admin/ProtectedRoute';
+import QuestionDetail from './pages/QuestionDetail';
 // import About from './pages/About';
 // import Contact from './pages/Contact';
 // import Donate from './pages/Donate';
@@ -32,7 +33,7 @@ function App() {
             {/* <Route path="/questions/:id" element={<QuestionDetail />} /> */}
             {/* <Route path="/ask" element={<SubmitQuestion />} /> */}
             <Route path="/admin" element={<AdminPanel />} />
-
+            <Route path="/questions/:id" element={<QuestionDetail />} />
              {/* Islamic Routes */}
             <Route path="/islamic-questions" element={<IslamicQuestions />} />
             <Route path="/ask-islamic-question" element={<AskIslamicQuestion />} />

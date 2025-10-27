@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { questionAPI, categoryAPI } from '../../services/api';
-import { Search, Filter, BookOpen, Clock, MessageCircle } from 'lucide-react';
+import { Search, Filter, BookOpen, Clock, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const IslamicQuestionList = () => {
   const [questions, setQuestions] = useState([]);
@@ -10,6 +10,10 @@ const IslamicQuestionList = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [questionsPerPage] = useState(5); // প্রতি পেজে ৫টি প্রশ্ন
 
   useEffect(() => {
     loadData();
@@ -17,6 +21,7 @@ const IslamicQuestionList = () => {
 
   useEffect(() => {
     filterQuestions();
+    setCurrentPage(1); // Filter change করলে প্রথম পেজে ফিরে যাবে
   }, [questions, selectedCategory, searchQuery]);
 
   const loadData = async () => {
@@ -55,6 +60,72 @@ const IslamicQuestionList = () => {
     }
 
     setFilteredQuestions(filtered);
+  };
+
+  // Get current questions for pagination
+  const indexOfLastQuestion = currentPage * questionsPerPage;
+  const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
+  const currentQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredQuestions.length / questionsPerPage);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Next page
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Previous page
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Generate page numbers
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total pages are less than maxPagesToShow
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show pages with ellipsis
+      if (currentPage <= 3) {
+        // Show first 4 pages and last page
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Show first page and last 4 pages
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // Show pages around current page
+        pageNumbers.push(1);
+        pageNumbers.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('...');
+        pageNumbers.push(totalPages);
+      }
+    }
+    
+    return pageNumbers;
   };
 
   const formatDate = (dateString) => {
@@ -115,9 +186,19 @@ const IslamicQuestionList = () => {
         </div>
       </div>
 
+      {/* Results Count */}
+      <div className="flex justify-between items-center mb-4">
+        <p className="text-gray-600 bangla-text">
+          মোট {filteredQuestions.length}টি প্রশ্ন পাওয়া গেছে
+        </p>
+        <p className="text-gray-600 bangla-text">
+          পেজ {currentPage} / {totalPages}
+        </p>
+      </div>
+
       {/* Questions Grid */}
-      <div className="grid grid-cols-1 gap-6">
-        {filteredQuestions.length === 0 ? (
+      <div className="grid grid-cols-1 gap-6 mb-8">
+        {currentQuestions.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-lg shadow-md">
             <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2 bangla-text">
@@ -131,7 +212,7 @@ const IslamicQuestionList = () => {
             </p>
           </div>
         ) : (
-          filteredQuestions.map((question) => (
+          currentQuestions.map((question) => (
             <div key={question.id} className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
               <div className="p-6">
                 {/* Question Header */}
@@ -166,7 +247,7 @@ const IslamicQuestionList = () => {
                       <MessageCircle className="h-5 w-5 text-green-600 mr-2" />
                       <span className="font-semibold text-green-800 bangla-text">উত্তর:</span>
                     </div>
-                    <p className="text-green-700 bangla-text">{question.answer}</p>
+                    <p className="text-green-700 bangla-text line-clamp-2">{question.answer}</p>
                     {question.answeredAt && (
                       <div className="text-sm text-green-600 mt-2 bangla-text">
                         উত্তর দেওয়া হয়েছে: {formatDate(question.answeredAt)}
@@ -186,15 +267,100 @@ const IslamicQuestionList = () => {
                 <div className="mt-4 text-right">
                   <Link
                     to={`/questions/${question.id}`}
-                    className="text-green-600 hover:text-green-700 font-medium bangla-text"
+                    className="text-green-600 hover:text-green-700 font-medium bangla-text inline-flex items-center"
                   >
-                    বিস্তারিত দেখুন →
+                    বিস্তারিত দেখুন 
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </Link>
                 </div>
               </div>
             </div>
           ))
         )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mb-8">
+          {/* Previous Button */}
+          <button
+            onClick={prevPage}
+            disabled={currentPage === 1}
+            className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
+              currentPage === 1
+                ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
+            }`}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            <span className="bangla-text">পূর্ববর্তী</span>
+          </button>
+
+          {/* Page Numbers */}
+          <div className="flex space-x-1">
+            {getPageNumbers().map((number, index) => (
+              number === '...' ? (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="px-3 py-2 text-gray-500"
+                >
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={number}
+                  onClick={() => paginate(number)}
+                  className={`px-4 py-2 rounded-lg border transition-colors ${
+                    currentPage === number
+                      ? 'bg-green-600 text-white border-green-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
+                  }`}
+                >
+                  {number}
+                </button>
+              )
+            ))}
+          </div>
+
+          {/* Next Button */}
+          <button
+            onClick={nextPage}
+            disabled={currentPage === totalPages}
+            className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
+              currentPage === totalPages
+                ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
+            }`}
+          >
+            <span className="bangla-text">পরবর্তী</span>
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </button>
+        </div>
+      )}
+
+      {/* Questions Per Page Selector */}
+      <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+        <div className="text-sm text-gray-600 bangla-text">
+          প্রতি পেজে {questionsPerPage}টি প্রশ্ন দেখানো হচ্ছে
+        </div>
+        
+        {/* You can add questions per page selector here if needed */}
+        {/*
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600 bangla-text">প্রতি পেজে:</span>
+          <select 
+            value={questionsPerPage}
+            onChange={(e) => setQuestionsPerPage(Number(e.target.value))}
+            className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+          >
+            <option value="5">৫</option>
+            <option value="10">১০</option>
+            <option value="20">২০</option>
+          </select>
+        </div>
+        */}
       </div>
     </div>
   );

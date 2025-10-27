@@ -24,14 +24,14 @@ const Header = () => {
           <div className="flex-shrink-0 flex items-center">
             <Link to="/" className="flex items-center">
               <img
-                className="h-20 w-auto sm:h-30" 
-                src="/jugjiggahsa.svg" 
+                className="h-19 w-auto sm:h-20 mb-8" 
+                src="/Jugjiggasha-h-logo.png" 
                 alt="ইসলামী মাসআলা" 
               />
               {/* Optional: Add text logo for smaller screens */}
-              <span className="ml-2 text-lg font-bold text-green-600 bangla-text md:hidden">
+              {/* <span className="ml-0 text-lg font-bold text-green-600 bangla-text md:hidden">
                 মাসআলা
-              </span>
+              </span> */}
             </Link>
           </div>
 

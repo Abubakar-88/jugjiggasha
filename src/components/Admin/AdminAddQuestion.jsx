@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { categoryAPI,questionAPI  } from '../../services/api';
+import { categoryAPI, questionAPI  } from '../../services/api';
 import { Plus, AlertCircle } from 'lucide-react';
 
 const AdminAddQuestion = () => {
