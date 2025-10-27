@@ -8,13 +8,14 @@ import Home from './pages/Home';
 import About from './pages/About';
 import IslamicQuestions from './pages/Islamic/IslamicQuestions';
 import AskIslamicQuestion from './pages/Islamic/AskIslamicQuestion';
+import ProtectedRoute from './components/Admin/ProtectedRoute';
 // import About from './pages/About';
 // import Contact from './pages/Contact';
 // import Donate from './pages/Donate';
 // import QuestionList from './pages/QuestionList';
 // import QuestionDetail from './pages/QuestionDetail';
 // import SubmitQuestion from './pages/SubmitQuestion';
-// import AdminPanel from './pages/AdminPanel';
+ import AdminPanel from './pages/AdminPanel';
 
 function App() {
   return (
@@ -30,12 +31,20 @@ function App() {
             <Route path="/questions" element={<QuestionList />} /> */}
             {/* <Route path="/questions/:id" element={<QuestionDetail />} /> */}
             {/* <Route path="/ask" element={<SubmitQuestion />} /> */}
-            {/* <Route path="/admin" element={<AdminPanel />} /> */}
+            <Route path="/admin" element={<AdminPanel />} />
 
              {/* Islamic Routes */}
             <Route path="/islamic-questions" element={<IslamicQuestions />} />
             <Route path="/ask-islamic-question" element={<AskIslamicQuestion />} />
 
+           <Route 
+              path="/admin/*" 
+              element={
+                <ProtectedRoute>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } 
+            />
           </Routes>
         </main>
         <Footer />

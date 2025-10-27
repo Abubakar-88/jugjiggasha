@@ -14,6 +14,7 @@ export const questionAPI = {
   getAll: () => api.get('/questions'),
   getById: (id) => api.get(`/questions/${id}`),
   create: (questionData) => api.post('/questions', questionData),
+  createWithAnswer: (questionData) => api.post('/questions/admin/create', questionData),
   update: (id, questionData) => api.put(`/questions/${id}`, questionData),
   delete: (id) => api.delete(`/questions/${id}`),
   search: (query) => api.get(`/questions/search?q=${query}`),
