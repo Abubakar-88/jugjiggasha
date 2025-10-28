@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost/Jugjiggasha/api';
+const API_BASE_URL = 'http://pale-twyla-abubakar-app-c11000c5.koyeb.app/Jugjiggasha/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
