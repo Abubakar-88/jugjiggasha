@@ -11,7 +11,7 @@ const Header = () => {
     { name: 'হোম', href: '/' },
     { name: 'মাসআলা সমূহ', href: '/islamic-questions' },
     { name: 'মাসআলা জিজ্ঞাসা', href: '/ask-islamic-question' },
-    { name: 'মাদরাসা সম্পর্কে', href: '/about' },
+    { name: 'আমাদের সম্পর্কে', href: '/about' },
     { name: 'যোগাযোগ', href: '/contact' },
     { name: 'দান করুন', href: '/donate' },
   ];

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, MessageCircle, Users, BookOpen, Heart } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-
+    const navigate = useNavigate();
+const [searchQuery, setSearchQuery] = useState('');
   const slidingMessages = [
     {
       text: "পরিচালনায় জামিয়াতুল মাদীনা মনোহরদী, নরসিংদী",
@@ -27,7 +28,19 @@ const Home = () => {
 
     return () => clearInterval(interval);
   }, []);
+ const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Redirect to questions page with search query
+      navigate(`/islamic-questions?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
+  };
   const stats = [
     { icon: MessageCircle, number: '১০০০+', label: 'মাসআলা উত্তরিত' },
     { icon: Users, number: '৫০০+', label: 'সদস্য' },
@@ -98,16 +111,27 @@ const Home = () => {
             
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="ইসলামী মাসআলা সম্পর্কে জানতে চাই..."
-                  className="w-full px-6 py-4 rounded-lg text-gray-800 text-lg bangla-text focus:outline-none focus:ring-4 focus:ring-green-300"
-                />
-                <button className="absolute right-2 top-2 bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors">
-                  <Search size={24} />
-                </button>
-              </div>
+              <form onSubmit={handleSearch}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="ইসলামী মাসআলা সম্পর্কে জানতে চাই..."
+                    className="w-full px-6 py-4 rounded-lg text-gray-800 text-lg bangla-text focus:outline-none focus:ring-4 focus:ring-green-300"
+                  />
+                  <button 
+                    type="submit"
+                    className="absolute right-2 top-2 bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <Search size={24} />
+                  </button>
+                </div>
+              </form>
+              <p className="text-green-200 text-sm mt-2 bangla-text">
+                উদাহরণ: "ওযু ভঙ্গ", "নামাজের ফরজ", "হালাল খাবার"
+              </p>
             </div>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
@@ -200,7 +224,7 @@ const Home = () => {
                 to="/about"
                 className="bg-green-500 hover:bg-green-400 text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors bangla-text"
               >
-                মাদরাসা সম্পর্কে জানুন
+                আমাদের সম্পর্কে জানুন
               </Link>
             </div>
           </div>

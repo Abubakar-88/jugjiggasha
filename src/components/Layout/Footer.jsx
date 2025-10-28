@@ -63,12 +63,27 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-8 pt-8 border-t border-gray-700">
-          <p className="text-center text-gray-300 bangla-text">
-            © ২০২৪ প্রশ্নোত্তর। সকল অধিকার সংরক্ষিত।
-          </p>
-        </div>
+      {/* Bottom Bar */}
+<div className="mt-8 pt-8 border-t border-gray-700">
+  <p className="text-center text-gray-300 bangla-text">
+    © ২০২৫ প্রশ্নোত্তর। সকল অধিকার সংরক্ষিত।
+  </p>
+  
+  <div className="text-center mt-2">
+    <a 
+      href="https://voroshait.com" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="text-green-400 hover:text-green-300 transition-colors inline-flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg border border-gray-700"
+    >
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm4 0h-2v-6h2v6z"/>
+      </svg>
+      <span className="bangla-text text-sm">Developed by</span>
+      <span className="font-semibold text-white">Vorosha IT</span>
+    </a>
+  </div>
+</div>
       </div>
     </footer>
   );

@@ -10,12 +10,8 @@ import IslamicQuestions from './pages/Islamic/IslamicQuestions';
 import AskIslamicQuestion from './pages/Islamic/AskIslamicQuestion';
 import ProtectedRoute from './components/Admin/ProtectedRoute';
 import QuestionDetail from './pages/QuestionDetail';
-// import About from './pages/About';
-// import Contact from './pages/Contact';
-// import Donate from './pages/Donate';
-// import QuestionList from './pages/QuestionList';
-// import QuestionDetail from './pages/QuestionDetail';
-// import SubmitQuestion from './pages/SubmitQuestion';
+import Donate from './pages/Donate';
+import Contact from './pages/Contact';
  import AdminPanel from './pages/AdminPanel';
 
 function App() {
@@ -27,17 +23,13 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
-            {/* <Route path="/contact" element={<Contact />} />
-            <Route path="/donate" element={<Donate />} />
-            <Route path="/questions" element={<QuestionList />} /> */}
-            {/* <Route path="/questions/:id" element={<QuestionDetail />} /> */}
-            {/* <Route path="/ask" element={<SubmitQuestion />} /> */}
-            <Route path="/admin" element={<AdminPanel />} />
+             <Route path="/contact" element={<Contact />} />
             <Route path="/questions/:id" element={<QuestionDetail />} />
              {/* Islamic Routes */}
             <Route path="/islamic-questions" element={<IslamicQuestions />} />
             <Route path="/ask-islamic-question" element={<AskIslamicQuestion />} />
-
+            <Route path="/donate" element={<Donate />} />
+             <Route path="/admin" element={<AdminPanel />} />
            <Route 
               path="/admin/*" 
               element={

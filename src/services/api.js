@@ -22,7 +22,28 @@ export const questionAPI = {
   getAnswered: () => api.get('/questions/answered'),
   getUnanswered: () => api.get('/questions/unanswered'),
   answer: (id, answer) => api.post(`/questions/${id}/answer`, { answer }),
+
+ // Paginated methods
+  getAllPaginated: (page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
+    api.get(`/questions/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`),
+  
+  searchPaginated: (query, page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
+    api.get(`/questions/search/paginated?q=${query}&page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`),
+  
+  getByCategoryPaginated: (categoryId, page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
+    api.get(`/questions/category/${categoryId}/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`),
+  
+  getAnsweredPaginated: (page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
+    api.get(`/questions/answered/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`),
+  
+  getUnansweredPaginated: (page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
+    api.get(`/questions/unanswered/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`),
 };
+
+
+
+
+
 
 // Category API calls
 export const categoryAPI = {
