@@ -6,14 +6,14 @@ const Contact = () => {
     {
       icon: Phone,
       title: 'ফোন নম্বর',
-      details: '০১৬৭৩৫৭৪৫৩৫',
+      details: '০১৯৭২২৫০৫১২',
       description: 'সকাল ৬টা থেকে রাত ১০টা',
       action: 'call'
     },
     {
       icon: MessageCircle,
       title: 'WhatsApp',
-      details: '০১৬৭৩৫৭৪৫৩৫',
+      details: '০১৯৭২২৫০৫১২',
       description: '২৪/৭ সংযোগ উপলব্ধ',
       action: 'whatsapp'
     },
@@ -41,14 +41,14 @@ const Contact = () => {
   ];
 
   const openWhatsApp = () => {
-    const phoneNumber = '01673574535';
+    const phoneNumber = '০১৯৭২২৫০৫১২';
     const message = 'আসসালামু আলাইকুম, জামিয়াতুল মাদীনা মনোহরদী সম্পর্কে জানতে চাই।';
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 
   const openPhone = () => {
-    window.location.href = 'tel:01673574535';
+    window.location.href = 'tel:০১৯৭২২৫০৫১২';
   };
 
   const openEmail = () => {
@@ -194,12 +194,12 @@ const Contact = () => {
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <p className="text-red-800 bangla-text font-semibold">মুহাম্মদ আব্দুল্লাহ</p>
                 <p className="text-gray-700 bangla-text">প্রধান শিক্ষক</p>
-                <p className="text-xl font-bold text-red-600 bangla-text mt-2">০১৬৭৩৫৭৪৫৩৫</p>
+                <p className="text-xl font-bold text-red-600 bangla-text mt-2">০১৯৭২২৫০৫১২</p>
               </div>
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <p className="text-red-800 bangla-text font-semibold">মাদ্রাসা অফিস</p>
                 <p className="text-gray-700 bangla-text">প্রশাসনিক বিভাগ</p>
-                <p className="text-xl font-bold text-red-600 bangla-text mt-2">০১৬৭৩৫৭৪৫৩৫</p>
+                <p className="text-xl font-bold text-red-600 bangla-text mt-2">০১৯৭২২৫০৫১২</p>
               </div>
             </div>
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
