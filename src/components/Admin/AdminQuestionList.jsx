@@ -514,6 +514,8 @@ const AdminQuestionList = () => {
                 {selectedQuestion.userName && (
                   <div className="mt-3 text-sm text-gray-600">
                     <span className="bangla-text">প্রশ্নকারী: {selectedQuestion.userName}</span>
+                    <span className="ml-3">ইমেইল: {selectedQuestion.userEmail}</span>
+                    {selectedQuestion.userPhone && <span className="ml-3">ফোন: {selectedQuestion.userPhone}</span>}
                   </div>
                 )}
               </div>
