@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { questionAPI, categoryAPI } from '../../services/api';
 import { Search, Filter, BookOpen, Clock, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -7,10 +7,10 @@ import CategorySidebar from './CategorySidebar';
 const IslamicQuestionList = () => {
   const [questions, setQuestions] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [filteredQuestions, setFilteredQuestions] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
@@ -21,41 +21,53 @@ const IslamicQuestionList = () => {
   // Get URL search parameters
   const [searchParams, setSearchParams] = useSearchParams();
 
-  useEffect(() => {
-    // Check for search query in URL
-    const urlSearchQuery = searchParams.get('search');
-    if (urlSearchQuery) {
-      setSearchQuery(urlSearchQuery);
+  // Memoized filter function
+  const filterQuestions = useCallback((questions, category, query) => {
+    let filtered = questions;
+
+    // Filter by category
+    if (category !== 'all') {
+      filtered = filtered.filter(q => 
+        q.category && q.category.id.toString() === category
+      );
     }
-    
-    loadData();
-  }, [currentPage]);
 
-  useEffect(() => {
-    filterQuestions();
-  }, [questions, selectedCategory, searchQuery]);
-
-  // Update URL when search changes
-  useEffect(() => {
-    if (searchQuery) {
-      searchParams.set('search', searchQuery);
-    } else {
-      searchParams.delete('search');
+    // Filter by search query
+    if (query) {
+      const searchQuery = query.toLowerCase();
+      filtered = filtered.filter(q =>
+        q.title.toLowerCase().includes(searchQuery) ||
+        q.description.toLowerCase().includes(searchQuery) ||
+        (q.category && q.category.name.toLowerCase().includes(searchQuery)) ||
+        (q.answer && q.answer.toLowerCase().includes(searchQuery))
+      );
     }
-    setSearchParams(searchParams);
-  }, [searchQuery]);
 
-  const loadData = async () => {
+    return filtered;
+  }, []);
+
+  // Memoized filtered questions
+  const filteredQuestions = useMemo(() => 
+    filterQuestions(questions, selectedCategory, searchQuery),
+    [questions, selectedCategory, searchQuery, filterQuestions]
+  );
+
+  // Load questions with debouncing
+  const loadData = useCallback(async (page = 0) => {
     try {
-      const [questionsRes, categoriesRes] = await Promise.all([
-        questionAPI.getAnsweredPaginated(currentPage, questionsPerPage, 'createdAt', 'desc'),
-        categoryAPI.getAll()
-      ]);
+      setLoading(true);
+      const questionsRes = await questionAPI.getAnsweredPaginated(page, questionsPerPage, 'createdAt', 'desc');
       
       setQuestions(questionsRes.data.content || []);
       setTotalPages(questionsRes.data.totalPages || 0);
       setTotalElements(questionsRes.data.totalElements || 0);
-      setCategories(categoriesRes.data);
+      
+      // Load categories only once
+      if (initialLoad) {
+        const categoriesRes = await categoryAPI.getAll();
+        setCategories(categoriesRes.data);
+        setInitialLoad(false);
+      }
     } catch (error) {
       console.error('Data load error:', error);
       setQuestions([]);
@@ -64,104 +76,115 @@ const IslamicQuestionList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [initialLoad, questionsPerPage]);
 
-  const handleCategorySelect = (categoryId) => {
+  // Initial load and page change
+  useEffect(() => {
+    const urlSearchQuery = searchParams.get('search');
+    if (urlSearchQuery) {
+      setSearchQuery(urlSearchQuery);
+    }
+    
+    loadData(currentPage);
+  }, [currentPage]);
+
+  // Search params update with debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery) {
+        searchParams.set('search', searchQuery);
+      } else {
+        searchParams.delete('search');
+      }
+      setSearchParams(searchParams);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  const handleCategorySelect = useCallback((categoryId) => {
     setSelectedCategory(categoryId.toString());
     setCurrentPage(0);
-  };
+  }, []);
 
-  const filterQuestions = () => {
-    let filtered = questions;
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(q => 
-        q.category && q.category.id.toString() === selectedCategory
-      );
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(q =>
-        q.title.toLowerCase().includes(query) ||
-        q.description.toLowerCase().includes(query) ||
-        (q.category && q.category.name.toLowerCase().includes(query)) ||
-        (q.answer && q.answer.toLowerCase().includes(query))
-      );
-    }
-
-    setFilteredQuestions(filtered);
-  };
-
-  const handleSearchSubmit = (e) => {
+  const handleSearchSubmit = useCallback((e) => {
     e.preventDefault();
-    filterQuestions();
     setCurrentPage(0);
-  };
+  }, []);
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setSearchQuery('');
     setSelectedCategory('all');
     setCurrentPage(0);
-  };
+  }, []);
 
-  // Next page
-  const nextPage = () => {
+  // Pagination handlers
+  const nextPage = useCallback(() => {
     if (currentPage < totalPages - 1) {
       setCurrentPage(currentPage + 1);
+      // Scroll to top when changing page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  };
+  }, [currentPage, totalPages]);
 
-  // Previous page
-  const prevPage = () => {
+  const prevPage = useCallback(() => {
     if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  };
+  }, [currentPage]);
 
-  // Generate page numbers
-  const getPageNumbers = () => {
-    const pageNumbers = [];
+  // Memoized page numbers
+  const pageNumbers = useMemo(() => {
+    const numbers = [];
     const maxPagesToShow = 5;
     
     if (totalPages <= maxPagesToShow) {
       for (let i = 0; i < totalPages; i++) {
-        pageNumbers.push(i);
+        numbers.push(i);
       }
     } else {
       if (currentPage <= 2) {
         for (let i = 0; i <= 3; i++) {
-          pageNumbers.push(i);
+          numbers.push(i);
         }
-        pageNumbers.push('...');
-        pageNumbers.push(totalPages - 1);
+        numbers.push('...');
+        numbers.push(totalPages - 1);
       } else if (currentPage >= totalPages - 3) {
-        pageNumbers.push(0);
-        pageNumbers.push('...');
+        numbers.push(0);
+        numbers.push('...');
         for (let i = totalPages - 4; i < totalPages; i++) {
-          pageNumbers.push(i);
+          numbers.push(i);
         }
       } else {
-        pageNumbers.push(0);
-        pageNumbers.push('...');
+        numbers.push(0);
+        numbers.push('...');
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pageNumbers.push(i);
+          numbers.push(i);
         }
-        pageNumbers.push('...');
-        pageNumbers.push(totalPages - 1);
+        numbers.push('...');
+        numbers.push(totalPages - 1);
       }
     }
     
-    return pageNumbers;
-  };
+    return numbers;
+  }, [currentPage, totalPages]);
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     return new Date(dateString).toLocaleDateString('bn-BD');
-  };
+  }, []);
 
-  if (loading) {
+  // Preload next page
+  useEffect(() => {
+    if (currentPage < totalPages - 1) {
+      const nextPage = currentPage + 1;
+      questionAPI.getAnsweredPaginated(nextPage, questionsPerPage, 'createdAt', 'desc')
+        .then(() => console.log(`Preloaded page ${nextPage}`))
+        .catch(err => console.log('Preload failed:', err));
+    }
+  }, [currentPage, totalPages, questionsPerPage]);
+
+  if (loading && initialLoad) {
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
@@ -233,16 +256,6 @@ const IslamicQuestionList = () => {
                   </select>
                 </div>
               </div>
-              
-              {/* Search Button for mobile */}
-              <div className="mt-4 md:hidden">
-                <button
-                  type="submit"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium bangla-text transition-colors"
-                >
-                  খুঁজুন
-                </button>
-              </div>
             </form>
           </div>
 
@@ -256,149 +269,70 @@ const IslamicQuestionList = () => {
             </p>
           </div>
 
-          {/* Questions Grid */}
-          <div className="grid grid-cols-1 gap-6 mb-8">
-            {filteredQuestions.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-lg shadow-md">
-                <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2 bangla-text">
-                  কোন প্রশ্ন পাওয়া যায়নি
-                </h3>
-                <p className="text-gray-500 bangla-text mb-4">
-                  {searchQuery || selectedCategory !== 'all' 
-                    ? 'আপনার সার্চের সাথে মিলে এমন কোন প্রশ্ন নেই' 
-                    : 'এখনও কোন উত্তর দেওয়া প্রশ্ন নেই'
-                  }
-                </p>
-                {(searchQuery || selectedCategory !== 'all') && (
-                  <button
-                    onClick={clearSearch}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium bangla-text transition-colors"
-                  >
-                    সব প্রশ্ন দেখুন
-                  </button>
+          {/* Loading Skeleton */}
+          {loading ? (
+            <div className="space-y-4">
+              {[...Array(5)].map((_, index) => (
+                <div key={index} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+                  <div className="flex justify-between mb-4">
+                    <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/6"></div>
+                  </div>
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-3"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                  <div className="h-20 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Questions Grid */}
+              <div className="grid grid-cols-1 gap-6 mb-8">
+                {filteredQuestions.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-lg shadow-md">
+                    <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-600 mb-2 bangla-text">
+                      কোন প্রশ্ন পাওয়া যায়নি
+                    </h3>
+                    <p className="text-gray-500 bangla-text mb-4">
+                      {searchQuery || selectedCategory !== 'all' 
+                        ? 'আপনার সার্চের সাথে মিলে এমন কোন প্রশ্ন নেই' 
+                        : 'এখনও কোন উত্তর দেওয়া প্রশ্ন নেই'
+                      }
+                    </p>
+                    {(searchQuery || selectedCategory !== 'all') && (
+                      <button
+                        onClick={clearSearch}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium bangla-text transition-colors"
+                      >
+                        সব প্রশ্ন দেখুন
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  filteredQuestions.map((question) => (
+                    <QuestionCard 
+                      key={question.id} 
+                      question={question} 
+                      formatDate={formatDate}
+                    />
+                  ))
                 )}
               </div>
-            ) : (
-              filteredQuestions.map((question) => (
-                <div key={question.id} className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-                  <div className="p-6">
-                    {/* Question Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-                      <div className="flex items-center mb-2 sm:mb-0">
-                        {question.category && (
-                          <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full bangla-text">
-                            {question.category.name}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span className="bangla-text">{formatDate(question.createdAt)}</span>
-                      </div>
-                    </div>
 
-                    {/* Question Title */}
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3 bangla-text">
-                      {question.title}
-                    </h3>
-
-                    {/* Question Description */}
-                    <p className="text-gray-600 mb-4 line-clamp-3 bangla-text">
-                      {question.description}
-                    </p>
-
-                    {/* Answer Section */}
-                    {question.isAnswered && question.answer && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div className="flex items-center mb-2">
-                          <MessageCircle className="h-5 w-5 text-green-600 mr-2" />
-                          <span className="font-semibold text-green-800 bangla-text">উত্তর:</span>
-                        </div>
-                        <p className="text-green-700 bangla-text line-clamp-2">{question.answer}</p>
-                        {question.answeredAt && (
-                          <div className="text-sm text-green-600 mt-2 bangla-text">
-                            উত্তর দেওয়া হয়েছে: {formatDate(question.answeredAt)}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* View Details Link */}
-                    <div className="mt-4 text-right">
-                      <Link
-                        to={`/questions/${question.id}`}
-                        className="text-green-600 hover:text-green-700 font-medium bangla-text inline-flex items-center"
-                      >
-                        বিস্তারিত দেখুন 
-                        <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-2 mb-8">
-              {/* Previous Button */}
-              <button
-                onClick={prevPage}
-                disabled={currentPage === 0}
-                className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
-                  currentPage === 0
-                    ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
-                }`}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                <span className="bangla-text">পূর্ববর্তী</span>
-              </button>
-
-              {/* Page Numbers */}
-              <div className="flex space-x-1">
-                {getPageNumbers().map((number, index) => (
-                  number === '...' ? (
-                    <span
-                      key={`ellipsis-${index}`}
-                      className="px-3 py-2 text-gray-500"
-                    >
-                      ...
-                    </span>
-                  ) : (
-                    <button
-                      key={number}
-                      onClick={() => setCurrentPage(number)}
-                      className={`px-4 py-2 rounded-lg border transition-colors ${
-                        currentPage === number
-                          ? 'bg-green-600 text-white border-green-600'
-                          : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
-                      }`}
-                    >
-                      {number + 1}
-                    </button>
-                  )
-                ))}
-              </div>
-
-              {/* Next Button */}
-              <button
-                onClick={nextPage}
-                disabled={currentPage === totalPages - 1}
-                className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
-                  currentPage === totalPages - 1
-                    ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
-                }`}
-              >
-                <span className="bangla-text">পরবর্তী</span>
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </button>
-            </div>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  pageNumbers={pageNumbers}
+                  onPageChange={setCurrentPage}
+                  onNextPage={nextPage}
+                  onPrevPage={prevPage}
+                />
+              )}
+            </>
           )}
         </div>
 
@@ -407,11 +341,139 @@ const IslamicQuestionList = () => {
           <CategorySidebar 
             onCategorySelect={handleCategorySelect}
             selectedCategory={selectedCategory}
+            loading={initialLoad}
           />
         </div>
       </div>
     </div>
   );
 };
+
+// Separate Question Card Component for better performance
+const QuestionCard = React.memo(({ question, formatDate }) => (
+  <div className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+    <div className="p-6">
+      {/* Question Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div className="flex items-center mb-2 sm:mb-0">
+          {question.category && (
+            <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full bangla-text">
+              {question.category.name}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center text-sm text-gray-500">
+          <Clock className="h-4 w-4 mr-1" />
+          <span className="bangla-text">{formatDate(question.createdAt)}</span>
+        </div>
+      </div>
+
+      {/* Question Title */}
+      <h3 className="text-xl font-semibold text-gray-900 mb-3 bangla-text">
+        {question.title}
+      </h3>
+
+      {/* Question Description */}
+      <p className="text-gray-600 mb-4 line-clamp-3 bangla-text">
+        {question.description}
+      </p>
+
+      {/* Answer Section */}
+      {question.isAnswered && question.answer && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center mb-2">
+            <MessageCircle className="h-5 w-5 text-green-600 mr-2" />
+            <span className="font-semibold text-green-800 bangla-text">উত্তর:</span>
+          </div>
+          <p className="text-green-700 bangla-text line-clamp-2">{question.answer}</p>
+          {question.answeredAt && (
+            <div className="text-sm text-green-600 mt-2 bangla-text">
+              উত্তর দেওয়া হয়েছে: {formatDate(question.answeredAt)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* View Details Link */}
+      <div className="mt-4 text-right">
+        <Link
+          to={`/questions/${question.id}`}
+          className="text-green-600 hover:text-green-700 font-medium bangla-text inline-flex items-center"
+        >
+          বিস্তারিত দেখুন 
+          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      </div>
+    </div>
+  </div>
+));
+
+// Separate Pagination Component
+const Pagination = React.memo(({ 
+  currentPage, 
+  totalPages, 
+  pageNumbers, 
+  onPageChange, 
+  onNextPage, 
+  onPrevPage 
+}) => (
+  <div className="flex justify-center items-center space-x-2 mb-8">
+    {/* Previous Button */}
+    <button
+      onClick={onPrevPage}
+      disabled={currentPage === 0}
+      className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
+        currentPage === 0
+          ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
+          : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
+      }`}
+    >
+      <ChevronLeft className="h-4 w-4 mr-1" />
+      <span className="bangla-text">পূর্ববর্তী</span>
+    </button>
+
+    {/* Page Numbers */}
+    <div className="flex space-x-1">
+      {pageNumbers.map((number, index) => (
+        number === '...' ? (
+          <span
+            key={`ellipsis-${index}`}
+            className="px-3 py-2 text-gray-500"
+          >
+            ...
+          </span>
+        ) : (
+          <button
+            key={number}
+            onClick={() => onPageChange(number)}
+            className={`px-4 py-2 rounded-lg border transition-colors ${
+              currentPage === number
+                ? 'bg-green-600 text-white border-green-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
+            }`}
+          >
+            {number + 1}
+          </button>
+        )
+      ))}
+    </div>
+
+    {/* Next Button */}
+    <button
+      onClick={onNextPage}
+      disabled={currentPage === totalPages - 1}
+      className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
+        currentPage === totalPages - 1
+          ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
+          : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
+      }`}
+    >
+      <span className="bangla-text">পরবর্তী</span>
+      <ChevronRight className="h-4 w-4 ml-1" />
+    </button>
+  </div>
+));
 
 export default IslamicQuestionList;

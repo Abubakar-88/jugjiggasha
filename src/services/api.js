@@ -11,6 +11,26 @@ const api = axios.create({
 
 // Question API calls
 export const questionAPI = {
+
+  // Cache object
+  _cache: new Map(),
+  
+  // Cache duration (5 minutes)
+  _cacheDuration: 5 * 60 * 1000,
+  
+  // Clear expired cache
+  _clearExpiredCache() {
+    const now = Date.now();
+    for (let [key, value] of this._cache.entries()) {
+      if (now - value.timestamp > this._cacheDuration) {
+        this._cache.delete(key);
+      }
+    }
+  },
+
+
+
+
   getAll: () => api.get('/questions'),
   getById: (id) => api.get(`/questions/${id}`),
   create: (questionData) => api.post('/questions', questionData),
@@ -32,12 +52,46 @@ export const questionAPI = {
   
   getByCategoryPaginated: (categoryId, page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
     api.get(`/questions/category/${categoryId}/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`),
-  
-  getAnsweredPaginated: (page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
-    api.get(`/questions/answered/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`),
-  
-  getUnansweredPaginated: (page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
+   getUnansweredPaginated: (page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
     api.get(`/questions/unanswered/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`),
+//   getAnsweredPaginated: (page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => 
+//     api.get(`/questions/answered/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`),
+
+  getAnsweredPaginated: (page = 0, size = 10, sortBy = 'createdAt', sortDirection = 'desc') => {
+    const cacheKey = `answered_${page}_${size}_${sortBy}_${sortDirection}`;
+    
+    // Check cache first
+    questionAPI._clearExpiredCache();
+    const cached = questionAPI._cache.get(cacheKey);
+    if (cached) {
+      return Promise.resolve(cached.data);
+    }
+    
+    return api.get(`/questions/answered/paginated?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`)
+      .then(response => {
+        // Cache the response
+        questionAPI._cache.set(cacheKey, {
+          data: response,
+          timestamp: Date.now()
+        });
+        return response;
+      });
+  },
+
+  // Clear cache for specific pattern
+  clearCache: (pattern = '') => {
+    if (pattern) {
+      for (let key of questionAPI._cache.keys()) {
+        if (key.includes(pattern)) {
+          questionAPI._cache.delete(key);
+        }
+      }
+    } else {
+      questionAPI._cache.clear();
+    }
+  }
+
+ 
 };
 
 
