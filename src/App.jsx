@@ -18,23 +18,22 @@ import Contact from './pages/Contact';
 function App() {
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/auto-update-sw.js')
-        .then((registration) => {
-          console.log('SW registered: ', registration);
-          
-          // Check for updates every hour
-          setInterval(() => {
-            registration.update();
-          }, 60 * 60 * 1000);
-        })
-        .catch((registrationError) => {
-          console.log('SW registration failed: ', registrationError);
-        });
-    }
-  }, []);
-
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('/sw.js') // Ensure this path is correct
+      .then((registration) => {
+        console.log('SW Registered successfully');
+        
+        // Check for updates every hour
+        setInterval(() => {
+          registration.update();
+        }, 60 * 60 * 1000);
+      })
+      .catch((error) => {
+        console.log('SW Registration failed:', error);
+      });
+  }
+}, []);
 
   return (
     <Router>

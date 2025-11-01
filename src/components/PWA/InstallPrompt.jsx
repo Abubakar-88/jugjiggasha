@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, Smartphone, RefreshCw } from 'lucide-react';
+import { X, Download, Smartphone, RefreshCw, Bell } from 'lucide-react';
 
 const InstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -7,11 +7,24 @@ const InstallPrompt = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState('default');
 
   useEffect(() => {
+    // Check notification permission
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+
     // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsStandalone(true);
+      
+      // Request notification permission for installed app
+      if (Notification.permission === 'default') {
+        setTimeout(() => {
+          requestNotificationPermission();
+        }, 3000);
+      }
     }
 
     // Check for iOS
@@ -24,25 +37,22 @@ const InstallPrompt = () => {
       setIsIOS(true);
     }
 
-    // For Android/Chrome - Show install prompt only for first time visitors
+    // For Android/Chrome
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
       
-      // Check if user has visited before
       const hasVisited = localStorage.getItem('hasVisited');
       if (!hasVisited) {
         setTimeout(() => {
           setShowPrompt(true);
-        }, 10000); // Show after 10 seconds for new users
+        }, 10000);
         localStorage.setItem('hasVisited', 'true');
       }
     };
 
-    // Check for updates
     checkForUpdates();
 
-    // Listen for update events
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         setUpdateAvailable(true);
@@ -56,14 +66,44 @@ const InstallPrompt = () => {
     };
   }, []);
 
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      
+      if (permission === 'granted') {
+        // Show confirmation
+        showNotificationGrantedMessage();
+      }
+    }
+  };
+
+  const showNotificationGrantedMessage = () => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SHOW_WELCOME_NOTIFICATION'
+      });
+    }
+  };
+
+  const handleNotificationRequest = () => {
+    if (notificationPermission === 'granted') {
+      // Already granted
+      return;
+    }
+    
+    if (notificationPermission === 'denied') {
+      alert('Notification permission is denied. Please enable it from browser settings.');
+      return;
+    }
+
+    requestNotificationPermission();
+  };
+
   const checkForUpdates = async () => {
     if ('serviceWorker' in navigator) {
       const registration = await navigator.serviceWorker.ready;
-      
-      // Check for updates every 24 hours
       registration.update();
-      
-      // Listen for updates
       registration.addEventListener('updatefound', () => {
         setUpdateAvailable(true);
       });
@@ -85,8 +125,12 @@ const InstallPrompt = () => {
       
       if (outcome === 'accepted') {
         console.log('User accepted the install prompt');
-        // Don't show again if installed
         localStorage.setItem('appInstalled', 'true');
+        
+        // Request notification after install
+        setTimeout(() => {
+          requestNotificationPermission();
+        }, 2000);
       }
       
       setDeferredPrompt(null);
@@ -96,7 +140,6 @@ const InstallPrompt = () => {
 
   const handleClosePrompt = () => {
     setShowPrompt(false);
-    // Store in localStorage to not show again for 30 days
     localStorage.setItem('installPromptDismissed', Date.now().toString());
   };
 
@@ -181,9 +224,12 @@ const InstallPrompt = () => {
               <p className="text-sm text-gray-600 bangla-text">
                 দ্রুত এক্সেসের জন্য অ্যাপটি ইন্সটল করুন
               </p>
-              <p className="text-xs text-green-600 bangla-text mt-1">
-                ✅ অটো আপডেট - বারবার ইন্সটল করার প্রয়োজন নেই
-              </p>
+              <div className="flex items-center mt-1">
+                <Bell className="h-3 w-3 text-green-600 mr-1" />
+                <p className="text-xs text-green-600 bangla-text">
+                  সাপ্তাহিক দ্বীনী মজলিসের রিমাইন্ডার পাবেন
+                </p>
+              </div>
             </div>
           </div>
           <button
@@ -204,21 +250,37 @@ const InstallPrompt = () => {
               <li>2. "Add to Home Screen" সিলেক্ট করুন</li>
               <li>3. "Add" বাটন ট্যাপ করুন</li>
             </ol>
+            <button
+              onClick={handleNotificationRequest}
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center bangla-text mt-2"
+            >
+              <Bell className="h-4 w-4 mr-2" />
+              নোটিফিকেশন অন করুন
+            </button>
           </div>
         ) : (
-          <div className="flex gap-2">
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <button
+                onClick={handleInstallClick}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center bangla-text"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                ইন্সটল করুন
+              </button>
+              <button
+                onClick={handleClosePrompt}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors bangla-text"
+              >
+                পরে
+              </button>
+            </div>
             <button
-              onClick={handleInstallClick}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center bangla-text"
+              onClick={handleNotificationRequest}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center bangla-text"
             >
-              <Download className="h-4 w-4 mr-2" />
-              ইন্সটল করুন
-            </button>
-            <button
-              onClick={handleClosePrompt}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors bangla-text"
-            >
-              পরে
+              <Bell className="h-4 w-4 mr-2" />
+              সাপ্তাহিক রিমাইন্ডার পান
             </button>
           </div>
         )}

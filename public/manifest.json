@@ -4,6 +4,7 @@
   "description": "ইসলামী মাসআলা-মাসায়েলের নির্ভরযোগ্য প্ল্যাটফর্ম",
   "theme_color": "#16a34a",
   "background_color": "#ffffff",
+  "gcm_sender_id": "103953800507",
   "display": "standalone",
   "start_url": "/",
   "lang": "bn",
