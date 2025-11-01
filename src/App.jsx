@@ -15,6 +15,26 @@ import Contact from './pages/Contact';
  import AdminPanel from './pages/AdminPanel';
 
 function App() {
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/auto-update-sw.js')
+        .then((registration) => {
+          console.log('SW registered: ', registration);
+          
+          // Check for updates every hour
+          setInterval(() => {
+            registration.update();
+          }, 60 * 60 * 1000);
+        })
+        .catch((registrationError) => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    }
+  }, []);
+
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 flex flex-col">
