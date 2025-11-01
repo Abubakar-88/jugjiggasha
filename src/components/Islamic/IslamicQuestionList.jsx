@@ -53,30 +53,36 @@ const IslamicQuestionList = () => {
   );
 
   // Load questions with debouncing
-  const loadData = useCallback(async (page = 0) => {
-    try {
-      setLoading(true);
-      const questionsRes = await questionAPI.getAnsweredPaginated(page, questionsPerPage, 'createdAt', 'desc');
-      
-      setQuestions(questionsRes.data.content || []);
-      setTotalPages(questionsRes.data.totalPages || 0);
-      setTotalElements(questionsRes.data.totalElements || 0);
-      
-      // Load categories only once
-      if (initialLoad) {
-        const categoriesRes = await categoryAPI.getAll();
-        setCategories(categoriesRes.data);
-        setInitialLoad(false);
-      }
-    } catch (error) {
-      console.error('Data load error:', error);
-      setQuestions([]);
-      setTotalPages(0);
-      setTotalElements(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [initialLoad, questionsPerPage]);
+  const loadData = async () => {
+  try {
+    const response = await questionAPI.getAnsweredPaginated(currentPage, questionsPerPage, 'createdAt', 'desc');
+    
+    console.log('API Response:', response.data);
+    
+    const responseData = response.data;
+    
+    // Extract data based on your exact backend structure
+    const questionsData = responseData.content || responseData.items || responseData.questions || [];
+    const totalElements = responseData.totalItems || responseData.totalElements || 0;
+    const totalPages = responseData.totalPages || 1;
+    
+    console.log('Questions found:', questionsData.length);
+    console.log('Total elements:', totalElements);
+    console.log('Total pages:', totalPages);
+    
+    setQuestions(questionsData);
+    setTotalPages(totalPages);
+    setTotalElements(totalElements);
+    
+  } catch (error) {
+    console.error('Data load error:', error);
+    setQuestions([]);
+    setTotalPages(0);
+    setTotalElements(0);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Initial load and page change
   useEffect(() => {
