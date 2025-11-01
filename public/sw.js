@@ -1,5 +1,5 @@
 const CACHE_NAME = 'Jug-Jiggasha-v2.0.0';
-const NOTIFICATION_TIME = 'saturday-23:08'; // শনিবার বেলা ৫টা
+const NOTIFICATION_TIME = 'saturday-23:16'; // শনিবার বেলা ৫টা
 
 // Install event - Set up weekly notification
 self.addEventListener('install', (event) => {
@@ -19,7 +19,7 @@ function scheduleWeeklyNotification() {
   // Find next Saturday (6 = Saturday)
   const daysUntilSaturday = (6 - now.getDay() + 7) % 7 || 7;
   nextSaturday.setDate(now.getDate() + daysUntilSaturday);
-  nextSaturday.setHours(23, 8, 0, 0); // 5:00 PM
+  nextSaturday.setHours(23, 16, 0, 0); // 5:00 PM
 
   const timeUntilNotification = nextSaturday.getTime() - now.getTime();
 
