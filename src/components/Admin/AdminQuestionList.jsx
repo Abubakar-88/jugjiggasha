@@ -248,7 +248,7 @@ const AdminQuestionList = () => {
                 </div>
 
                 {/* User Info */}
-                {(question.userName || question.userEmail) && (
+                {(question.userName || question.userEmail || question.userPhone) && (
                   <div className="mb-3 text-sm text-gray-600">
                     {question.userName && <span className="bangla-text">প্রশ্নকারী: {question.userName}</span>}
                     {question.userEmail && <span className="ml-3">ইমেইল: {question.userEmail}</span>}
