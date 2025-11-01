@@ -13,8 +13,10 @@ const IslamicQuestionList = () => {
   const [loading, setLoading] = useState(true);
   
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [questionsPerPage] = useState(5);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const questionsPerPage = 10;
 
   // Get URL search parameters
   const [searchParams, setSearchParams] = useSearchParams();
@@ -27,11 +29,10 @@ const IslamicQuestionList = () => {
     }
     
     loadData();
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     filterQuestions();
-    setCurrentPage(1);
   }, [questions, selectedCategory, searchQuery]);
 
   // Update URL when search changes
@@ -47,13 +48,19 @@ const IslamicQuestionList = () => {
   const loadData = async () => {
     try {
       const [questionsRes, categoriesRes] = await Promise.all([
-        questionAPI.getAll(),
+        questionAPI.getAnsweredPaginated(currentPage, questionsPerPage, 'createdAt', 'desc'),
         categoryAPI.getAll()
       ]);
-      setQuestions(questionsRes.data);
+      
+      setQuestions(questionsRes.data.content || []);
+      setTotalPages(questionsRes.data.totalPages || 0);
+      setTotalElements(questionsRes.data.totalElements || 0);
       setCategories(categoriesRes.data);
     } catch (error) {
       console.error('Data load error:', error);
+      setQuestions([]);
+      setTotalPages(0);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -61,7 +68,7 @@ const IslamicQuestionList = () => {
 
   const handleCategorySelect = (categoryId) => {
     setSelectedCategory(categoryId.toString());
-    setCurrentPage(1);
+    setCurrentPage(0);
   };
 
   const filterQuestions = () => {
@@ -91,36 +98,25 @@ const IslamicQuestionList = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     filterQuestions();
-    setCurrentPage(1);
+    setCurrentPage(0);
   };
 
   const clearSearch = () => {
     setSearchQuery('');
     setSelectedCategory('all');
-    setCurrentPage(1);
+    setCurrentPage(0);
   };
-
-  // Get current questions for pagination
-  const indexOfLastQuestion = currentPage * questionsPerPage;
-  const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
-  const currentQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
-
-  // Calculate total pages
-  const totalPages = Math.ceil(filteredQuestions.length / questionsPerPage);
-
-  // Change page
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   // Next page
   const nextPage = () => {
-    if (currentPage < totalPages) {
+    if (currentPage < totalPages - 1) {
       setCurrentPage(currentPage + 1);
     }
   };
 
   // Previous page
   const prevPage = () => {
-    if (currentPage > 1) {
+    if (currentPage > 0) {
       setCurrentPage(currentPage - 1);
     }
   };
@@ -131,30 +127,30 @@ const IslamicQuestionList = () => {
     const maxPagesToShow = 5;
     
     if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
+      for (let i = 0; i < totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
+      if (currentPage <= 2) {
+        for (let i = 0; i <= 3; i++) {
           pageNumbers.push(i);
         }
         pageNumbers.push('...');
-        pageNumbers.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pageNumbers.push(1);
+        pageNumbers.push(totalPages - 1);
+      } else if (currentPage >= totalPages - 3) {
+        pageNumbers.push(0);
         pageNumbers.push('...');
-        for (let i = totalPages - 3; i <= totalPages; i++) {
+        for (let i = totalPages - 4; i < totalPages; i++) {
           pageNumbers.push(i);
         }
       } else {
-        pageNumbers.push(1);
+        pageNumbers.push(0);
         pageNumbers.push('...');
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
           pageNumbers.push(i);
         }
         pageNumbers.push('...');
-        pageNumbers.push(totalPages);
+        pageNumbers.push(totalPages - 1);
       }
     }
     
@@ -253,16 +249,16 @@ const IslamicQuestionList = () => {
           {/* Results Count */}
           <div className="flex justify-between items-center mb-4">
             <p className="text-gray-600 bangla-text">
-              মোট {filteredQuestions.length}টি প্রশ্ন পাওয়া গেছে
+              মোট {totalElements}টি উত্তর দেওয়া প্রশ্ন পাওয়া গেছে
             </p>
             <p className="text-gray-600 bangla-text">
-              পেজ {currentPage} / {totalPages}
+              পেজ {currentPage + 1} / {totalPages}
             </p>
           </div>
 
           {/* Questions Grid */}
           <div className="grid grid-cols-1 gap-6 mb-8">
-            {currentQuestions.length === 0 ? (
+            {filteredQuestions.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-lg shadow-md">
                 <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-600 mb-2 bangla-text">
@@ -271,7 +267,7 @@ const IslamicQuestionList = () => {
                 <p className="text-gray-500 bangla-text mb-4">
                   {searchQuery || selectedCategory !== 'all' 
                     ? 'আপনার সার্চের সাথে মিলে এমন কোন প্রশ্ন নেই' 
-                    : 'এখনও কোন প্রশ্ন জমা হয়নি'
+                    : 'এখনও কোন উত্তর দেওয়া প্রশ্ন নেই'
                   }
                 </p>
                 {(searchQuery || selectedCategory !== 'all') && (
@@ -284,7 +280,7 @@ const IslamicQuestionList = () => {
                 )}
               </div>
             ) : (
-              currentQuestions.map((question) => (
+              filteredQuestions.map((question) => (
                 <div key={question.id} className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
                   <div className="p-6">
                     {/* Question Header */}
@@ -313,7 +309,7 @@ const IslamicQuestionList = () => {
                     </p>
 
                     {/* Answer Section */}
-                    {question.isAnswered ? (
+                    {question.isAnswered && question.answer && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <div className="flex items-center mb-2">
                           <MessageCircle className="h-5 w-5 text-green-600 mr-2" />
@@ -325,13 +321,6 @@ const IslamicQuestionList = () => {
                             উত্তর দেওয়া হয়েছে: {formatDate(question.answeredAt)}
                           </div>
                         )}
-                      </div>
-                    ) : (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                        <p className="text-yellow-700 bangla-text">
-                          <Clock className="h-4 w-4 inline mr-1" />
-                          উত্তর দেওয়া হবে শীঘ্রই ইনশাআল্লাহ
-                        </p>
                       </div>
                     )}
 
@@ -359,9 +348,9 @@ const IslamicQuestionList = () => {
               {/* Previous Button */}
               <button
                 onClick={prevPage}
-                disabled={currentPage === 1}
+                disabled={currentPage === 0}
                 className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
-                  currentPage === 1
+                  currentPage === 0
                     ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
                 }`}
@@ -383,14 +372,14 @@ const IslamicQuestionList = () => {
                   ) : (
                     <button
                       key={number}
-                      onClick={() => paginate(number)}
+                      onClick={() => setCurrentPage(number)}
                       className={`px-4 py-2 rounded-lg border transition-colors ${
                         currentPage === number
                           ? 'bg-green-600 text-white border-green-600'
                           : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
                       }`}
                     >
-                      {number}
+                      {number + 1}
                     </button>
                   )
                 ))}
@@ -399,9 +388,9 @@ const IslamicQuestionList = () => {
               {/* Next Button */}
               <button
                 onClick={nextPage}
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages - 1}
                 className={`flex items-center px-4 py-2 rounded-lg border transition-colors ${
-                  currentPage === totalPages
+                  currentPage === totalPages - 1
                     ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-green-50 hover:text-green-700 hover:border-green-300'
                 }`}

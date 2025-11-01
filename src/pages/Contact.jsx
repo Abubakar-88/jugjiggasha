@@ -192,8 +192,8 @@ const Contact = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <div className="bg-white p-4 rounded-lg shadow-sm">
-                <p className="text-red-800 bangla-text font-semibold">মুহাম্মদ আব্দুল্লাহ</p>
-                <p className="text-gray-700 bangla-text">প্রধান শিক্ষক</p>
+                <p className="text-red-800 bangla-text font-semibold">মুহাম্মদ আব্দুল্লাহ জুবায়ের</p>
+                <p className="text-gray-700 bangla-text">মুহতামিম</p>
                 <p className="text-xl font-bold text-red-600 bangla-text mt-2">০১৯৭২২৫০৫১২</p>
               </div>
               <div className="bg-white p-4 rounded-lg shadow-sm">

@@ -10,7 +10,7 @@ const Donate = () => {
     {
       id: 'bkash',
       name: 'bKash',
-      number: '01673574535',
+      number: '01684366854',
       icon: '📱',
       instructions: [
         "bKash এ গিয়ে 'Send Money' নির্বাচন করুন",
@@ -352,7 +352,7 @@ const Donate = () => {
                 <h3 className="font-semibold mb-2 bangla-text">কন্টাক্ট করুন</h3>
                 <p className="text-sm text-gray-600 bangla-text">
                   আরও তথ্যের জন্য কল করুন: <br />
-                  <span className="font-mono font-bold">০১৬৭৩৫৭৪৫৩৫</span>
+                  <span className="font-mono font-bold">০১৯৭২২৫০৫১২</span>
                 </p>
               </div>
             </div>
@@ -369,8 +369,8 @@ const Donate = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500 bangla-text">
               <span>📍 নরসিংদী, বাংলাদেশ</span>
-              <span>📞 ০১৬৭৩৫৭৪৫৩৫</span>
-              <span>📧 info@jamiatulmadina.edu.bd</span>
+              <span>📞 ০১৯৭২২৫০৫১২</span>
+              <span>📧 jamiatulmadina@gmail.com</span>
             </div>
           </div>
         </div>
