@@ -14,6 +14,7 @@ import QuestionDetail from './pages/QuestionDetail';
 import Donate from './pages/Donate';
 import Contact from './pages/Contact';
  import AdminPanel from './pages/AdminPanel';
+import NotificationPermission from './components/NotificationPermission';
 
 function App() {
 
@@ -50,6 +51,7 @@ function App() {
             <Route path="/ask-islamic-question" element={<AskIslamicQuestion />} />
             <Route path="/donate" element={<Donate />} />
              <Route path="/admin" element={<AdminPanel />} />
+             <Route path="/notification-permission" element={<NotificationPermission />} />
            <Route 
               path="/admin/*" 
               element={
