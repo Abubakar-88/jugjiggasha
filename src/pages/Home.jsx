@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, MessageCircle, Users, BookOpen, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-    const navigate = useNavigate();
-const [searchQuery, setSearchQuery] = useState('');
+  const [currentNotice, setCurrentNotice] = useState(0);
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const slidingMessages = [
     {
       text: "পরিচালনায় জামিয়াতুল মাদীনা মনোহরদী, নরসিংদী",
@@ -20,18 +23,40 @@ const [searchQuery, setSearchQuery] = useState('');
       type: "info"
     }
   ];
+  
+  const slidingNotice = [
+    {
+      text: "অত্র মাদ্রাসায় প্রতি শনিবার মাগরিবের নামাজের পর দ্বিনি মসলিজ আয়োজিত হয়",
+      type: "info"
+    },
+    {
+      text: "আমরা উপস্থিত থাকব সকল কে উপস্থিত হওয়ার জন্য অনুরোধ রইল",
+      type: "info"
+    },
+    {
+      text: "দ্বীনি জ্ঞান আহরন করা প্রত্যেক মুসলিমের জন্য ফরজ",
+      type: "info"
+    }
+  ];
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const messageInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slidingMessages.length);
-    }, 3000); // 3 seconds interval
+    }, 3000);
 
-    return () => clearInterval(interval);
+    const noticeInterval = setInterval(() => {
+      setCurrentNotice((prev) => (prev + 1) % slidingNotice.length);
+    }, 4000); // Notice slides every 4 seconds
+
+    return () => {
+      clearInterval(messageInterval);
+      clearInterval(noticeInterval);
+    };
   }, []);
- const handleSearch = (e) => {
+
+  const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Redirect to questions page with search query
       navigate(`/islamic-questions?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -41,6 +66,7 @@ const [searchQuery, setSearchQuery] = useState('');
       handleSearch(e);
     }
   };
+
   const stats = [
     { icon: MessageCircle, number: '১০০০+', label: 'মাসআলা উত্তরিত' },
     { icon: Users, number: '৫০০+', label: 'সদস্য' },
@@ -49,7 +75,7 @@ const [searchQuery, setSearchQuery] = useState('');
 
   return (
     <div className="min-h-screen">
-      {/* Sliding Message Banner */}
+      {/* Top Sliding Message Banner */}
       <div className="bg-green-800 text-white py-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center">
@@ -84,6 +110,68 @@ const [searchQuery, setSearchQuery] = useState('');
         </div>
       </div>
 
+      {/* Notice Slider - Right to Left */}
+      <div className="bg-yellow-500 text-black py-2 overflow-hidden">
+        <div className="relative">
+          {/* Moving Notice Container */}
+          <div className="animate-marquee whitespace-nowrap">
+            {slidingNotice.map((notice, index) => (
+              <span
+                key={index}
+                className={`mx-8 text-sm font-medium bangla-text inline-block ${
+                  index === currentNotice ? 'opacity-100' : 'opacity-0 absolute'
+                }`}
+              >
+                📢 {notice.text}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Alternative Notice Design with Smooth Slide */}
+      <div className="bg-orange-500 text-white py-2 overflow-hidden relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center">
+            <div className="bg-white text-orange-600 px-3 py-1 rounded-md mr-4 flex-shrink-0">
+              <span className="text-sm font-bold bangla-text">নোটিশ</span>
+            </div>
+            
+            <div className="flex-1 overflow-hidden">
+              <div className="relative h-6">
+                {slidingNotice.map((notice, index) => (
+                  <div
+                    key={index}
+                    className={`absolute top-0 left-0 w-full transition-transform duration-1000 ease-in-out ${
+                      index === currentNotice 
+                        ? 'translate-x-0' 
+                        : index < currentNotice 
+                          ? '-translate-x-full' 
+                          : 'translate-x-full'
+                    }`}
+                  >
+                    <span className="text-sm font-medium bangla-text">
+                      {notice.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CSS for custom animation */}
+      <style jsx>{`
+        @keyframes marquee {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+          animation: marquee 20s linear infinite;
+        }
+      `}</style>
+
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-green-600 to-green-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -93,7 +181,7 @@ const [searchQuery, setSearchQuery] = useState('');
               <div className="bg-green-800 inline-flex items-center px-6 py-3 rounded-full mb-4">
                 <BookOpen className="h-6 w-6 mr-2" />
                 <span className="text-lg font-semibold bangla-text">
-                  জামিয়াতুল মাদীনা মনোহরদী
+                  জামিআতুল মাদীনা মনোহরদী
                 </span>
               </div>
               <p className="text-green-200 text-lg bangla-text max-w-2xl mx-auto">
@@ -152,6 +240,7 @@ const [searchQuery, setSearchQuery] = useState('');
         </div>
       </section>
 
+      {/* Rest of your existing code... */}
       {/* Stats Section */}
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -208,7 +297,7 @@ const [searchQuery, setSearchQuery] = useState('');
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Heart className="h-16 w-16 mx-auto mb-6 text-red-300" />
-            <h2 className="text-3xl font-bold mb-4 bangla-text">জামিয়াতুল মাদীনা মনোহরদী মাদরাসায় দান করুন</h2>
+            <h2 className="text-3xl font-bold mb-4 bangla-text">জামিআতুল মাদীনা মনোহরদী মাদরাসায় দান করুন</h2>
             <p className="text-xl mb-8 text-green-100 bangla-text max-w-3xl mx-auto">
               এই মাদরাসায় শতাধিক গরীব মেধাবী শিক্ষার্থী ইসলামী ও আধুনিক শিক্ষা গ্রহণ করছে। 
               আপনার দান তাদের শিক্ষা কার্যক্রম চালু রাখতে সহায়তা করবে।
