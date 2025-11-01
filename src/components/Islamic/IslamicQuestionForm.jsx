@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { categoryAPI, questionAPI } from '../../services/api';
-import { Book, Send, AlertCircle, Clock, User, Phone, Mail } from 'lucide-react';
+import { Book, Send, AlertCircle, Clock, User, Phone, Mail, Info } from 'lucide-react';
 import { Link } from 'react-router-dom'
 
 const IslamicQuestionForm = () => {
@@ -17,6 +17,7 @@ const IslamicQuestionForm = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showPhoneTooltip, setShowPhoneTooltip] = useState(false);
 
   useEffect(() => {
     loadCategories();
@@ -39,10 +40,10 @@ const IslamicQuestionForm = () => {
     e.preventDefault();
     
     // Validation
-    if (!formData.title.trim() || !formData.description.trim() || !formData.categoryId) {
+    if (!formData.title.trim() || !formData.description.trim() || !formData.categoryId || !formData.userPhone.trim()) {
       setMessage({ 
         type: 'error', 
-        text: 'দয়া করে প্রশ্নের শিরোনাম, বিস্তারিত বিবরণ এবং ক্যাটাগরি নির্বাচন করুন' 
+        text: 'দয়া করে প্রশ্নের শিরোনাম, বিস্তারিত বিবরণ, ক্যাটাগরি এবং ফোন নম্বর প্রদান করুন' 
       });
       return;
     }
@@ -59,6 +60,16 @@ const IslamicQuestionForm = () => {
       setMessage({ 
         type: 'error', 
         text: 'প্রশ্নের বিস্তারিত বিবরণ কমপক্ষে ২০ অক্ষরের হতে হবে' 
+      });
+      return;
+    }
+
+    // Phone number validation
+    const phoneRegex = /^(?:\+88|01)?(?:\d{9}|\d{10})$/;
+    if (!phoneRegex.test(formData.userPhone.trim().replace(/\s/g, ''))) {
+      setMessage({ 
+        type: 'error', 
+        text: 'দয়া করে একটি সঠিক ফোন নম্বর প্রদান করুন' 
       });
       return;
     }
@@ -150,6 +161,10 @@ const IslamicQuestionForm = () => {
               <AlertCircle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
               <span>সম্মানজনক ভাষা ব্যবহার করুন</span>
             </li>
+            <li className="flex items-start">
+              <Phone className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+              <span>ফোন নম্বর বাধ্যতামূলক - প্রশ্ন বুঝতে সমস্যা হলে আমরা কল করব</span>
+            </li>
           </ul>
         </div>
 
@@ -173,7 +188,7 @@ const IslamicQuestionForm = () => {
               <div className="md:col-span-3">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 bangla-text flex items-center">
                   <User className="h-5 w-5 mr-2 text-green-600" />
-                  আপনার তথ্য (ঐচ্ছিক)
+                  আপনার তথ্য
                 </h3>
               </div>
               
@@ -206,19 +221,47 @@ const IslamicQuestionForm = () => {
                 />
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-gray-700 mb-2 bangla-text">
                   <Phone className="h-4 w-4 inline mr-1" />
-                  ফোন নম্বর
+                  ফোন নম্বর <span className="text-red-500">*</span>
+                  
+                  {/* Info Icon with Tooltip */}
+                  <div 
+                    className="inline-flex items-center ml-2 relative"
+                    onMouseEnter={() => setShowPhoneTooltip(true)}
+                    onMouseLeave={() => setShowPhoneTooltip(false)}
+                  >
+                    <Info className="h-4 w-4 text-blue-500 cursor-help" />
+                    
+                    {/* Tooltip */}
+                    {showPhoneTooltip && (
+                      <div className="absolute left-0 bottom-6 mb-2 w-64 bg-gray-900 text-white text-sm rounded-lg p-3 z-10 shadow-lg">
+                        <div className="flex items-start">
+                          <Info className="h-4 w-4 text-blue-300 mr-2 mt-0.5 flex-shrink-0" />
+                          <span className="bangla-text">
+                            আপনার প্রশ্ন বুঝতে সমস্যা হলে আমরা এই নম্বরে কল করে সাহায্য করতে পারি। 
+                            ফোন নম্বরটি সঠিকভাবে প্রদান করুন।
+                          </span>
+                        </div>
+                        <div className="absolute -bottom-1 left-4 w-3 h-3 bg-gray-900 transform rotate-45"></div>
+                      </div>
+                    )}
+                  </div>
                 </label>
+                
                 <input
                   type="tel"
                   name="userPhone"
                   value={formData.userPhone}
                   onChange={handleChange}
                   placeholder="০১৭XXXXXXXX"
-                  className="input-field bangla-text"
+                  required
+                  className="input-field bangla-text border-green-300 focus:border-green-500 focus:ring-green-500"
                 />
+                <p className="text-sm text-gray-500 mt-1 bangla-text">
+                  ফোন নম্বর বাধ্যতামূলক
+                </p>
               </div>
             </div>
 
@@ -308,7 +351,7 @@ const IslamicQuestionForm = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 flex items-center justify-center min-w-[200px]"
+                className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 flex items-center justify-center min-w-[200px] bangla-text"
               >
                 {isSubmitting ? (
                   <>
@@ -334,8 +377,8 @@ const IslamicQuestionForm = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-700 bangla-text">
           <div>
-            <h4 className="font-medium mb-2">উত্তর পাবেন কোথায়?</h4>
-            <p className="text-sm">আপনার মাসআলার উত্তর ওয়েবসাইটে প্রকাশিত হবে এবং ইমেইল/ফোনে নোটিফিকেশন পাঠানো হবে</p>
+            <h4 className="font-medium mb-2">ফোন নম্বর কেন প্রয়োজন?</h4>
+            <p className="text-sm">আপনার প্রশ্নটি যদি অস্পষ্ট বা জটিল হয়, আমরা সরাসরি ফোন করে বুঝতে সাহায্য করব। এটি দ্রুত উত্তর পাওয়ার সহায়ক।</p>
           </div>
           <div>
             <h4 className="font-medium mb-2">কতদিন সময় লাগবে?</h4>
