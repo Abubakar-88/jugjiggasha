@@ -11,7 +11,9 @@ import {
   ChevronLeft, 
   ChevronRight,
   X,
-  Expand
+  Expand,
+  Mail,
+  Phone
 } from 'lucide-react';
 
 const AdminQuestionList = () => {
@@ -35,7 +37,7 @@ const AdminQuestionList = () => {
 
   useEffect(() => {
     filterQuestions();
-    setCurrentPage(1); // Filter change করলে প্রথম পেজে ফিরে যাবে
+    setCurrentPage(1); // Reset to first page on filter/search change
   }, [questions, searchQuery, statusFilter]);
 
   const loadQuestions = async () => {
@@ -247,12 +249,21 @@ const AdminQuestionList = () => {
                   </div>
                 </div>
 
-                {/* User Info */}
-                {(question.userName || question.userEmail || question.userPhone) && (
-                  <div className="mb-3 text-sm text-gray-600">
-                    {question.userName && <span className="bangla-text">প্রশ্নকারী: {question.userName}</span>}
-                    {question.userEmail && <span className="ml-3">ইমেইল: {question.userEmail}</span>}
-                    {question.userPhone && <span className="ml-3">ফোন: {question.userPhone}</span>}
+                {/* User Info - Updated based on your API response */}
+                {(question.userEmail || question.userPhone) && (
+                  <div className="mb-3 text-sm text-gray-600 flex flex-wrap gap-4">
+                    {question.userEmail && (
+                      <div className="flex items-center">
+                        <Mail className="h-4 w-4 mr-1 text-gray-400" />
+                        <span>ইমেইল: {question.userEmail}</span>
+                      </div>
+                    )}
+                    {question.userPhone && (
+                      <div className="flex items-center">
+                        <Phone className="h-4 w-4 mr-1 text-gray-400" />
+                        <span className="bangla-text">ফোন: {question.userPhone}</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -442,6 +453,24 @@ const AdminQuestionList = () => {
                   <p className="text-gray-600 mt-2 bangla-text whitespace-pre-wrap">
                     {selectedQuestion.description}
                   </p>
+                  
+                  {/* User Info in Modal */}
+                  {(selectedQuestion.userEmail || selectedQuestion.userPhone) && (
+                    <div className="mt-3 text-sm text-gray-600 flex flex-wrap gap-4">
+                      {selectedQuestion.userEmail && (
+                        <div className="flex items-center">
+                          <Mail className="h-4 w-4 mr-1 text-gray-400" />
+                          <span>ইমেইল: {selectedQuestion.userEmail}</span>
+                        </div>
+                      )}
+                      {selectedQuestion.userPhone && (
+                        <div className="flex items-center">
+                          <Phone className="h-4 w-4 mr-1 text-gray-400" />
+                          <span className="bangla-text">ফোন: {selectedQuestion.userPhone}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -511,11 +540,21 @@ const AdminQuestionList = () => {
                   {selectedQuestion.description}
                 </p>
                 
-                {selectedQuestion.userName && (
-                  <div className="mt-3 text-sm text-gray-600">
-                    <span className="bangla-text">প্রশ্নকারী: {selectedQuestion.userName}</span>
-                    <span className="ml-3">ইমেইল: {selectedQuestion.userEmail}</span>
-                    {selectedQuestion.userPhone && <span className="ml-3">ফোন: {selectedQuestion.userPhone}</span>}
+                {/* User Info in Full Answer Modal */}
+                {(selectedQuestion.userEmail || selectedQuestion.userPhone) && (
+                  <div className="mt-3 text-sm text-gray-600 flex flex-wrap gap-4">
+                    {selectedQuestion.userEmail && (
+                      <div className="flex items-center">
+                        <Mail className="h-4 w-4 mr-1 text-gray-400" />
+                        <span>ইমেইল: {selectedQuestion.userEmail}</span>
+                      </div>
+                    )}
+                    {selectedQuestion.userPhone && (
+                      <div className="flex items-center">
+                        <Phone className="h-4 w-4 mr-1 text-gray-400" />
+                        <span className="bangla-text">ফোন: {selectedQuestion.userPhone}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
