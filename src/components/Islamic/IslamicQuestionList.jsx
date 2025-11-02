@@ -52,37 +52,51 @@ const IslamicQuestionList = () => {
     [questions, selectedCategory, searchQuery, filterQuestions]
   );
 
-  // Load questions with debouncing
-  const loadData = async () => {
-  try {
-    const response = await questionAPI.getAnsweredPaginated(currentPage, questionsPerPage, 'createdAt', 'desc');
-    
-    console.log('API Response:', response.data);
-    
-    const responseData = response.data;
-    
-    // Extract data based on your exact backend structure
-    const questionsData = responseData.content || responseData.items || responseData.questions || [];
-    const totalElements = responseData.totalItems || responseData.totalElements || 0;
-    const totalPages = responseData.totalPages || 1;
-    
-    console.log('Questions found:', questionsData.length);
-    console.log('Total elements:', totalElements);
-    console.log('Total pages:', totalPages);
-    
-    setQuestions(questionsData);
-    setTotalPages(totalPages);
-    setTotalElements(totalElements);
-    
-  } catch (error) {
-    console.error('Data load error:', error);
-    setQuestions([]);
-    setTotalPages(0);
-    setTotalElements(0);
-  } finally {
-    setLoading(false);
-  }
-};
+  // Load questions and categories
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Load both questions and categories in parallel
+      const [questionsRes, categoriesRes] = await Promise.all([
+        questionAPI.getAnsweredPaginated(currentPage, questionsPerPage, 'createdAt', 'desc'),
+        categoryAPI.getAll()
+      ]);
+      
+      console.log('API Response:', questionsRes.data);
+      console.log('Categories:', categoriesRes.data);
+      
+      const responseData = questionsRes.data;
+      
+      // Extract data based on your exact backend structure
+      const questionsData = responseData.content || responseData.items || responseData.questions || [];
+      const totalElements = responseData.totalItems || responseData.totalElements || 0;
+      const totalPages = responseData.totalPages || 1;
+      
+      console.log('Questions found:', questionsData.length);
+      console.log('Total elements:', totalElements);
+      console.log('Total pages:', totalPages);
+      console.log('Categories found:', categoriesRes.data.length);
+      
+      setQuestions(questionsData);
+      setCategories(categoriesRes.data || []);
+      setTotalPages(totalPages);
+      setTotalElements(totalElements);
+      
+      if (initialLoad) {
+        setInitialLoad(false);
+      }
+      
+    } catch (error) {
+      console.error('Data load error:', error);
+      setQuestions([]);
+      setCategories([]);
+      setTotalPages(0);
+      setTotalElements(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, questionsPerPage, initialLoad]);
 
   // Initial load and page change
   useEffect(() => {
@@ -91,8 +105,8 @@ const IslamicQuestionList = () => {
       setSearchQuery(urlSearchQuery);
     }
     
-    loadData(currentPage);
-  }, [currentPage]);
+    loadData();
+  }, [currentPage, loadData]);
 
   // Search params update with debounce
   useEffect(() => {
@@ -106,7 +120,7 @@ const IslamicQuestionList = () => {
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, searchParams, setSearchParams]);
 
   const handleCategorySelect = useCallback((categoryId) => {
     setSelectedCategory(categoryId.toString());
@@ -347,7 +361,8 @@ const IslamicQuestionList = () => {
           <CategorySidebar 
             onCategorySelect={handleCategorySelect}
             selectedCategory={selectedCategory}
-            loading={initialLoad}
+            categories={categories}
+            loading={loading}
           />
         </div>
       </div>
