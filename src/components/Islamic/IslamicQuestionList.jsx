@@ -5,10 +5,11 @@ import { Search, Filter, BookOpen, Clock, MessageCircle, ChevronLeft, ChevronRig
 import CategorySidebar from './CategorySidebar';
 
 const IslamicQuestionList = () => {
-  const [questions, setQuestions] = useState([]);
+ const [questions, setQuestions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   
@@ -18,26 +19,28 @@ const IslamicQuestionList = () => {
   const [totalElements, setTotalElements] = useState(0);
   const questionsPerPage = 10;
 
-  // Get URL search parameters
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // 🔥 New: Track preloaded pages
+  const [preloadedPages, setPreloadedPages] = useState(new Set());
 
   // Memoized filter function
   const filterQuestions = useCallback((questions, category, query) => {
+    if (category === 'all' && !query) return questions;
+
     let filtered = questions;
 
-    // Filter by category
     if (category !== 'all') {
       filtered = filtered.filter(q => 
         q.category && q.category.id.toString() === category
       );
     }
 
-    // Filter by search query
     if (query) {
       const searchQuery = query.toLowerCase();
       filtered = filtered.filter(q =>
         q.title.toLowerCase().includes(searchQuery) ||
-        q.description.toLowerCase().includes(searchQuery) ||
+        (q.description && q.description.toLowerCase().includes(searchQuery)) ||
         (q.category && q.category.name.toLowerCase().includes(searchQuery)) ||
         (q.answer && q.answer.toLowerCase().includes(searchQuery))
       );
@@ -46,69 +49,109 @@ const IslamicQuestionList = () => {
     return filtered;
   }, []);
 
-  // Memoized filtered questions
+  // 🔥 Optimized: Use deferred search for better performance
   const filteredQuestions = useMemo(() => 
-    filterQuestions(questions, selectedCategory, searchQuery),
-    [questions, selectedCategory, searchQuery, filterQuestions]
+    filterQuestions(questions, selectedCategory, deferredSearchQuery),
+    [questions, selectedCategory, deferredSearchQuery, filterQuestions]
   );
 
-  // Load questions and categories
-  const loadData = useCallback(async () => {
-    try {
+  // 🔥 Optimized: Load data with preloading
+  const loadData = useCallback(async (page = currentPage, isPreload = false) => {
+    if (!isPreload) {
       setLoading(true);
+    }
+
+    try {
+      const response = await questionAPI.getAnsweredPaginated(page, questionsPerPage, 'createdAt', 'desc');
+      const responseData = response.data;
       
-      // Load both questions and categories in parallel
-      const [questionsRes, categoriesRes] = await Promise.all([
-        questionAPI.getAnsweredPaginated(currentPage, questionsPerPage, 'createdAt', 'desc'),
-        categoryAPI.getAll()
-      ]);
-      
-      console.log('API Response:', questionsRes.data);
-      console.log('Categories:', categoriesRes.data);
-      
-      const responseData = questionsRes.data;
-      
-      // Extract data based on your exact backend structure
-      const questionsData = responseData.content || responseData.items || responseData.questions || [];
-      const totalElements = responseData.totalItems || responseData.totalElements || 0;
+      const questionsData = responseData.content || responseData.questions || [];
+      const totalElements = responseData.totalElements || responseData.totalItems || 0;
       const totalPages = responseData.totalPages || 1;
-      
-      console.log('Questions found:', questionsData.length);
-      console.log('Total elements:', totalElements);
-      console.log('Total pages:', totalPages);
-      console.log('Categories found:', categoriesRes.data.length);
-      
-      setQuestions(questionsData);
-      setCategories(categoriesRes.data || []);
-      setTotalPages(totalPages);
-      setTotalElements(totalElements);
-      
-      if (initialLoad) {
-        setInitialLoad(false);
+
+      if (!isPreload) {
+        setQuestions(questionsData);
+        setTotalPages(totalPages);
+        setTotalElements(totalElements);
+        
+        if (initialLoad) {
+          setInitialLoad(false);
+        }
+
+        // 🔥 Preload next 2 pages in background
+        if (page < totalPages - 1) {
+          setTimeout(() => {
+            const nextPage1 = page + 1;
+            const nextPage2 = page + 2;
+            
+            if (nextPage1 < totalPages && !preloadedPages.has(nextPage1)) {
+              loadData(nextPage1, true);
+              setPreloadedPages(prev => new Set(prev.add(nextPage1)));
+            }
+            if (nextPage2 < totalPages && !preloadedPages.has(nextPage2)) {
+              loadData(nextPage2, true);
+              setPreloadedPages(prev => new Set(prev.add(nextPage2)));
+            }
+          }, 500);
+        }
       }
-      
+
+      return questionsData;
     } catch (error) {
       console.error('Data load error:', error);
-      setQuestions([]);
-      setCategories([]);
-      setTotalPages(0);
-      setTotalElements(0);
+      if (!isPreload) {
+        setQuestions([]);
+        setTotalPages(0);
+        setTotalElements(0);
+      }
+      return [];
     } finally {
-      setLoading(false);
+      if (!isPreload) {
+        setLoading(false);
+      }
     }
-  }, [currentPage, questionsPerPage, initialLoad]);
+  }, [currentPage, questionsPerPage, initialLoad, preloadedPages]);
 
-  // Initial load and page change
+  // 🔥 Optimized: Load categories separately
+  const loadCategories = useCallback(async () => {
+    try {
+      const response = await categoryAPI.getAll();
+      setCategories(response.data || []);
+    } catch (error) {
+      console.error('Categories load error:', error);
+      setCategories([]);
+    }
+  }, []);
+
+  // Initial load
   useEffect(() => {
     const urlSearchQuery = searchParams.get('search');
     if (urlSearchQuery) {
       setSearchQuery(urlSearchQuery);
     }
     
-    loadData();
+    // Load initial data in parallel
+    Promise.all([
+      loadData(0, false),
+      loadCategories()
+    ]);
+
+    // Preload first few pages for instant navigation
+    setTimeout(() => {
+      questionAPI.preloadPages(1, 3, questionsPerPage)
+        .then(results => {
+          console.log('Preloaded pages 1-3');
+        });
+    }, 1000);
+
+  }, []);
+
+  // Handle page changes
+  useEffect(() => {
+    loadData(currentPage, false);
   }, [currentPage, loadData]);
 
-  // Search params update with debounce
+  // 🔥 Optimized search with better debouncing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchQuery) {
@@ -117,32 +160,41 @@ const IslamicQuestionList = () => {
         searchParams.delete('search');
       }
       setSearchParams(searchParams);
-    }, 300); // 300ms debounce
+      
+      // Clear cache when search changes for fresh results
+      if (searchQuery) {
+        questionAPI.clearCache('answered_');
+      }
+    }, 400);
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery, searchParams, setSearchParams]);
 
+  // 🔥 Optimized event handlers
   const handleCategorySelect = useCallback((categoryId) => {
     setSelectedCategory(categoryId.toString());
     setCurrentPage(0);
+    // Clear cache when category changes
+    questionAPI.clearCache('answered_');
   }, []);
 
   const handleSearchSubmit = useCallback((e) => {
     e.preventDefault();
     setCurrentPage(0);
+    questionAPI.clearCache('answered_');
   }, []);
 
   const clearSearch = useCallback(() => {
     setSearchQuery('');
     setSelectedCategory('all');
     setCurrentPage(0);
+    questionAPI.clearCache('answered_');
   }, []);
 
-  // Pagination handlers
+  // 🔥 Optimized pagination
   const nextPage = useCallback(() => {
     if (currentPage < totalPages - 1) {
       setCurrentPage(currentPage + 1);
-      // Scroll to top when changing page
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [currentPage, totalPages]);
@@ -154,7 +206,7 @@ const IslamicQuestionList = () => {
     }
   }, [currentPage]);
 
-  // Memoized page numbers
+  // 🔥 Memoized page numbers
   const pageNumbers = useMemo(() => {
     const numbers = [];
     const maxPagesToShow = 5;
@@ -189,6 +241,8 @@ const IslamicQuestionList = () => {
     
     return numbers;
   }, [currentPage, totalPages]);
+
+  
 
   const formatDate = useCallback((dateString) => {
     return new Date(dateString).toLocaleDateString('bn-BD');
