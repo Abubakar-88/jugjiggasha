@@ -13,7 +13,8 @@ import {
   X,
   Expand,
   Mail,
-  Phone
+  Phone,
+  AlertTriangle
 } from 'lucide-react';
 
 const AdminQuestionList = () => {
@@ -33,6 +34,10 @@ const AdminQuestionList = () => {
     delete: null, // question id for which delete is in progress
     edit: null, // question id for which edit is in progress
   });
+
+  // Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -164,20 +169,29 @@ const AdminQuestionList = () => {
     }
   };
 
-  const handleDeleteQuestion = async (questionId) => {
-    if (window.confirm('আপনি কি এই প্রশ্নটি ডিলিট করতে চান?')) {
-      try {
-        // Set loading state for this specific question
-        setLoadingStates(prev => ({ ...prev, delete: questionId }));
+  // Open delete confirmation modal
+  const openDeleteModal = (question) => {
+    setQuestionToDelete(question);
+    setShowDeleteModal(true);
+  };
 
-        await questionAPI.delete(questionId);
-        await loadQuestions(); // Reload questions
-      } catch (error) {
-        console.error('Delete error:', error);
-      } finally {
-        // Clear loading state
-        setLoadingStates(prev => ({ ...prev, delete: null }));
-      }
+  // Handle delete after confirmation
+  const handleDeleteQuestion = async () => {
+    if (!questionToDelete) return;
+
+    try {
+      // Set loading state for this specific question
+      setLoadingStates(prev => ({ ...prev, delete: questionToDelete.id }));
+
+      await questionAPI.delete(questionToDelete.id);
+      await loadQuestions(); // Reload questions
+      setShowDeleteModal(false);
+      setQuestionToDelete(null);
+    } catch (error) {
+      console.error('Delete error:', error);
+    } finally {
+      // Clear loading state
+      setLoadingStates(prev => ({ ...prev, delete: null }));
     }
   };
 
@@ -413,21 +427,12 @@ const AdminQuestionList = () => {
                   )}
 
                   <button
-                    onClick={() => handleDeleteQuestion(question.id)}
+                    onClick={() => openDeleteModal(question)}
                     disabled={loadingStates.delete === question.id}
                     className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center bangla-text"
                   >
-                    {loadingStates.delete === question.id ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        লোড হচ্ছে...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        ডিলিট করুন
-                      </>
-                    )}
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    ডিলিট করুন
                   </button>
                 </div>
               </div>
@@ -492,6 +497,60 @@ const AdminQuestionList = () => {
             <span className="bangla-text">পরবর্তী</span>
             <ChevronRight className="h-4 w-4 ml-1" />
           </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && questionToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="bg-red-100 p-3 rounded-full">
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                </div>
+              </div>
+              
+              <h3 className="text-xl font-semibold text-center mb-2 bangla-text">
+                প্রশ্ন ডিলিট করুন
+              </h3>
+              
+              <p className="text-gray-600 text-center mb-6 bangla-text">
+                আপনি কি নিশ্চিত যে আপনি এই প্রশ্নটি ডিলিট করতে চান?
+              </p>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold text-red-800 mb-2 bangla-text">প্রশ্ন:</h4>
+                <p className="text-red-700 bangla-text">{questionToDelete.title}</p>
+              </div>
+
+              <div className="flex justify-center space-x-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setQuestionToDelete(null);
+                  }}
+                  className="px-6 py-2 text-gray-600 hover:text-gray-800 bangla-text border border-gray-300 rounded-lg"
+                >
+                  বাতিল
+                </button>
+                <button
+                  onClick={handleDeleteQuestion}
+                  disabled={loadingStates.delete === questionToDelete.id}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-6 py-2 rounded-lg font-medium bangla-text flex items-center"
+                >
+                  {loadingStates.delete === questionToDelete.id ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      ডিলিট হচ্ছে...
+                    </>
+                  ) : (
+                    'ডিলিট করুন'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
