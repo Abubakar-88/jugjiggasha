@@ -27,6 +27,13 @@ const AdminQuestionList = () => {
   const [showFullAnswerModal, setShowFullAnswerModal] = useState(false);
   const [answerText, setAnswerText] = useState('');
   
+  // Loading states for different actions
+  const [loadingStates, setLoadingStates] = useState({
+    answer: null, // question id for which answer is being submitted
+    delete: null, // question id for which delete is in progress
+    edit: null, // question id for which edit is in progress
+  });
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [questionsPerPage] = useState(5);
@@ -42,6 +49,7 @@ const AdminQuestionList = () => {
 
   const loadQuestions = async () => {
     try {
+      setLoading(true);
       const response = await questionAPI.getAll();
       setQuestions(response.data);
     } catch (error) {
@@ -140,6 +148,9 @@ const AdminQuestionList = () => {
     if (!answerText.trim()) return;
 
     try {
+      // Set loading state for this specific question
+      setLoadingStates(prev => ({ ...prev, answer: questionId }));
+
       await questionAPI.answer(questionId, answerText);
       await loadQuestions(); // Reload questions
       setShowAnswerModal(false);
@@ -147,17 +158,46 @@ const AdminQuestionList = () => {
       setSelectedQuestion(null);
     } catch (error) {
       console.error('Answer submission error:', error);
+    } finally {
+      // Clear loading state
+      setLoadingStates(prev => ({ ...prev, answer: null }));
     }
   };
 
   const handleDeleteQuestion = async (questionId) => {
     if (window.confirm('আপনি কি এই প্রশ্নটি ডিলিট করতে চান?')) {
       try {
+        // Set loading state for this specific question
+        setLoadingStates(prev => ({ ...prev, delete: questionId }));
+
         await questionAPI.delete(questionId);
         await loadQuestions(); // Reload questions
       } catch (error) {
         console.error('Delete error:', error);
+      } finally {
+        // Clear loading state
+        setLoadingStates(prev => ({ ...prev, delete: null }));
       }
+    }
+  };
+
+  const handleEditAnswer = async (questionId) => {
+    if (!answerText.trim()) return;
+
+    try {
+      // Set loading state for this specific question
+      setLoadingStates(prev => ({ ...prev, edit: questionId }));
+
+      await questionAPI.answer(questionId, answerText);
+      await loadQuestions(); // Reload questions
+      setShowAnswerModal(false);
+      setAnswerText('');
+      setSelectedQuestion(null);
+    } catch (error) {
+      console.error('Answer edit error:', error);
+    } finally {
+      // Clear loading state
+      setLoadingStates(prev => ({ ...prev, edit: null }));
     }
   };
 
@@ -169,6 +209,13 @@ const AdminQuestionList = () => {
   const showFullAnswer = (question) => {
     setSelectedQuestion(question);
     setShowFullAnswerModal(true);
+  };
+
+  // Open answer modal for new answer or edit
+  const openAnswerModal = (question, isEdit = false) => {
+    setSelectedQuestion(question);
+    setAnswerText(isEdit ? question.answer || '' : '');
+    setShowAnswerModal(true);
   };
 
   if (loading) {
@@ -319,27 +366,40 @@ const AdminQuestionList = () => {
                 <div className="flex flex-wrap gap-2">
                   {!question.isAnswered && (
                     <button
-                      onClick={() => {
-                        setSelectedQuestion(question);
-                        setShowAnswerModal(true);
-                      }}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center bangla-text"
+                      onClick={() => openAnswerModal(question, false)}
+                      disabled={loadingStates.answer === question.id}
+                      className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center bangla-text"
                     >
-                      <MessageCircle className="h-4 w-4 mr-1" />
-                      উত্তর দিন
+                      {loadingStates.answer === question.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          লোড হচ্ছে...
+                        </>
+                      ) : (
+                        <>
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          উত্তর দিন
+                        </>
+                      )}
                     </button>
                   )}
                   
                   <button
-                    onClick={() => {
-                      setSelectedQuestion(question);
-                      setAnswerText(question.answer || '');
-                      setShowAnswerModal(true);
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center bangla-text"
+                    onClick={() => openAnswerModal(question, true)}
+                    disabled={loadingStates.edit === question.id}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center bangla-text"
                   >
-                    <Edit className="h-4 w-4 mr-1" />
-                    {question.isAnswered ? 'এডিট করুন' : 'উত্তর দিন'}
+                    {loadingStates.edit === question.id ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        লোড হচ্ছে...
+                      </>
+                    ) : (
+                      <>
+                        <Edit className="h-4 w-4 mr-1" />
+                        {question.isAnswered ? 'এডিট করুন' : 'উত্তর দিন'}
+                      </>
+                    )}
                   </button>
 
                   {question.isAnswered && question.answer && (
@@ -354,10 +414,20 @@ const AdminQuestionList = () => {
 
                   <button
                     onClick={() => handleDeleteQuestion(question.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center bangla-text"
+                    disabled={loadingStates.delete === question.id}
+                    className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center bangla-text"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    ডিলিট করুন
+                    {loadingStates.delete === question.id ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        লোড হচ্ছে...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        ডিলিট করুন
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -502,11 +572,21 @@ const AdminQuestionList = () => {
                   বাতিল
                 </button>
                 <button
-                  onClick={() => handleAnswerSubmit(selectedQuestion.id)}
-                  disabled={!answerText.trim()}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-lg font-medium bangla-text"
+                  onClick={() => selectedQuestion?.isAnswered ? 
+                    handleEditAnswer(selectedQuestion.id) : 
+                    handleAnswerSubmit(selectedQuestion.id)
+                  }
+                  disabled={!answerText.trim() || loadingStates.answer === selectedQuestion?.id || loadingStates.edit === selectedQuestion?.id}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-lg font-medium bangla-text flex items-center"
                 >
-                  {selectedQuestion?.isAnswered ? 'আপডেট করুন' : 'প্রকাশ করুন'}
+                  {(loadingStates.answer === selectedQuestion?.id || loadingStates.edit === selectedQuestion?.id) ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      লোড হচ্ছে...
+                    </>
+                  ) : (
+                    selectedQuestion?.isAnswered ? 'আপডেট করুন' : 'প্রকাশ করুন'
+                  )}
                 </button>
               </div>
             </div>
