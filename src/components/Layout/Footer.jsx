@@ -57,8 +57,8 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-4 bangla-text">যোগাযোগ</h4>
             <div className="space-y-2 text-gray-300">
-              <p className="bangla-text">ইমেইল: support@proshnottor.com</p>
-              <p className="bangla-text">ফোন: +৮৮০ ১৭XX-XXXXXX</p>
+              <p className="bangla-text">ইমেইল: jamiatulmadina@gmail.com</p>
+              <p className="bangla-text">ফোন: +৮৮০ ১৬৮৪৩৬৬৮৫৪</p>
             </div>
           </div>
         </div>
