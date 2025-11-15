@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams,useDeferredValue } from 'react-router-dom';
 import { questionAPI, categoryAPI } from '../../services/api';
 import { Search, Filter, BookOpen, Clock, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import CategorySidebar from './CategorySidebar';
