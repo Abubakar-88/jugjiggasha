@@ -12,6 +12,7 @@ const Header = () => {
     { name: 'মাসআলা সমূহ', href: '/islamic-questions' },
     { name: 'মাসআলা জিজ্ঞাসা', href: '/ask-islamic-question' },
     { name: 'আমাদের সম্পর্কে', href: '/about' },
+    { name: 'জাকাত ক্যালকুলেটর', href: '/zakat-calculator' },
     { name: 'যোগাযোগ', href: '/contact' },
     { name: 'দান করুন', href: '/donate' },
   ];

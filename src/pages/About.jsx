@@ -285,7 +285,7 @@ const About = () => {
       </section>
 
       {/* Timeline Section */}
-      <section className="py-16 bg-gray-50">
+      {/* <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4 bangla-text">
@@ -297,7 +297,7 @@ const About = () => {
           </div>
 
           <div className="relative">
-            {/* Timeline line */}
+        
             <div className="absolute left-1/2 transform -translate-x-1/2 w-1 bg-green-200 h-full hidden lg:block"></div>
             
             <div className="space-y-12 lg:space-y-0">
@@ -305,7 +305,7 @@ const About = () => {
                 <div key={index} className={`relative lg:flex items-center ${
                   index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'
                 } timeline-mobile`}>
-                  {/* Content */}
+              
                   <div className={`lg:w-1/2 ${index % 2 === 0 ? 'lg:pr-8 lg:text-right' : 'lg:pl-8'} mb-4 lg:mb-0`}>
                     <div className="bg-white rounded-lg shadow-md p-6">
                       <div className="text-2xl font-bold text-green-600 mb-2">
@@ -320,17 +320,17 @@ const About = () => {
                     </div>
                   </div>
                   
-                  {/* Dot */}
+                  
                   <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-green-600 rounded-full border-4 border-white hidden lg:block timeline-dot"></div>
                   
-                  {/* Empty space for alignment */}
+                  
                   <div className="lg:w-1/2"></div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Team Section */}
       <section className="py-16 bg-white">

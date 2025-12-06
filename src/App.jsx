@@ -15,6 +15,7 @@ import Donate from './pages/Donate';
 import Contact from './pages/Contact';
  import AdminPanel from './pages/AdminPanel';
 import NotificationPermission from './components/NotificationPermission';
+import ZakatPage from './pages/ZakatPage';
 
 function App() {
 
@@ -48,6 +49,7 @@ function App() {
             <Route path="/questions/:id" element={<QuestionDetail />} />
              {/* Islamic Routes */}
             <Route path="/islamic-questions" element={<IslamicQuestions />} />
+            <Route path="/zakat-calculator" element={<ZakatPage />} />
             <Route path="/ask-islamic-question" element={<AskIslamicQuestion />} />
             <Route path="/donate" element={<Donate />} />
              <Route path="/admin" element={<AdminPanel />} />
