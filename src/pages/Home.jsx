@@ -102,7 +102,7 @@ const Home = () => {
   const mobileMenuItems = [
     { name: 'মাসআলা সমূহ', href: '/islamic-questions', icon: MessageCircle, color: 'text-green-600', bgColor: 'bg-green-100' },
     { name: 'মাসআলা জিজ্ঞাসা', href: '/ask-islamic-question', icon: HelpCircle, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-    { name: 'জাকাত ক্যালকুলেটর', href: '/zakat-calculator', icon: Calculator, color: 'text-purple-600', bgColor: 'bg-purple-100' },
+    { name: 'জাকাত ক্যালকুলেট', href: '/zakat-calculator', icon: Calculator, color: 'text-purple-600', bgColor: 'bg-purple-100' },
     { name: 'আমাদের সম্পর্কে', href: '/about', icon: Info, color: 'text-orange-600', bgColor: 'bg-orange-100' },
     { name: 'যোগাযোগ', href: '/contact', icon: Phone, color: 'text-red-600', bgColor: 'bg-red-100' },
     { name: 'দান করুন', href: '/donate', icon: Heart, color: 'text-pink-600', bgColor: 'bg-pink-100' },
