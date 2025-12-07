@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, MessageCircle, Users, BookOpen, Heart } from 'lucide-react';
+import { 
+  Search, 
+  MessageCircle, 
+  Users, 
+  BookOpen, 
+  Heart,
+  HelpCircle,
+  Info,
+  Calculator,
+  Phone,
+  Menu,
+  X
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
@@ -8,6 +20,21 @@ const Home = () => {
   const [currentNotice, setCurrentNotice] = useState(0);
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Check if mobile device
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   const slidingMessages = [
     {
@@ -15,7 +42,7 @@ const Home = () => {
       type: "info"
     },
     {
-      text: "মাদরাসার গরীব মেধাবী শিক্ষার্থীদের জন্য দান করুন",
+      text: "গরীব মেধাবী শিক্ষার্থীদের জন্য দান করুন",
       type: "donate"
     },
     {
@@ -50,7 +77,7 @@ const Home = () => {
 
     const noticeInterval = setInterval(() => {
       setCurrentNotice((prev) => (prev + 1) % slidingNotice.length);
-    }, 4000); // Notice slides every 4 seconds
+    }, 4000);
 
     return () => {
       clearInterval(messageInterval);
@@ -70,6 +97,16 @@ const Home = () => {
       handleSearch(e);
     }
   };
+
+  // Mobile menu items (Home excluded as per your request)
+  const mobileMenuItems = [
+    { name: 'মাসআলা সমূহ', href: '/islamic-questions', icon: MessageCircle, color: 'text-green-600', bgColor: 'bg-green-100' },
+    { name: 'মাসআলা জিজ্ঞাসা', href: '/ask-islamic-question', icon: HelpCircle, color: 'text-blue-600', bgColor: 'bg-blue-100' },
+    { name: 'জাকাত ক্যালকুলেটর', href: '/zakat-calculator', icon: Calculator, color: 'text-purple-600', bgColor: 'bg-purple-100' },
+    { name: 'আমাদের সম্পর্কে', href: '/about', icon: Info, color: 'text-orange-600', bgColor: 'bg-orange-100' },
+    { name: 'যোগাযোগ', href: '/contact', icon: Phone, color: 'text-red-600', bgColor: 'bg-red-100' },
+    { name: 'দান করুন', href: '/donate', icon: Heart, color: 'text-pink-600', bgColor: 'bg-pink-100' },
+  ];
 
   const stats = [
     { icon: MessageCircle, number: '১০০০+', label: 'মাসআলা উত্তরিত' },
@@ -117,7 +154,6 @@ const Home = () => {
       {/* Notice Slider - Right to Left */}
       <div className="bg-yellow-500 text-black py-2 overflow-hidden">
         <div className="relative">
-          {/* Moving Notice Container */}
           <div className="animate-marquee whitespace-nowrap">
             {slidingNotice.map((notice, index) => (
               <span
@@ -165,17 +201,76 @@ const Home = () => {
         </div>
       </div>
 
-      {/* CSS for custom animation */}
-      <style jsx>{`
-        @keyframes marquee {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-        .animate-marquee {
-          animation: marquee 20s linear infinite;
-        }
-      `}</style>
+     
+      {/* Mobile Icon Menu - Only on Mobile */}
+      {isMobile && isMobileMenuOpen && (
+        <div className="md:hidden bg-white border-b shadow-lg animate-slideDown">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="grid grid-cols-3 gap-3">
+              {mobileMenuItems.map((item, index) => (
+                <Link
+                  key={index}
+                  to={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className={`${item.bgColor} rounded-full p-3 mb-2`}>
+                    <item.icon className={`h-6 w-6 ${item.color}`} />
+                  </div>
+                  <span className="text-xs font-medium bangla-text text-center text-gray-700">
+                    {item.name}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
+      {/* Mobile Quick Navigation Grid - Always visible on mobile */}
+{isMobile && (
+  <div className="md:hidden bg-gradient-to-b from-gray-50 to-white py-6 px-4">
+    <div className="max-w-7xl mx-auto">
+      <h2 className="text-lg font-bold text-center mb-4 bangla-text text-gray-800">
+        আমাদের সেবা সমূহ
+      </h2>
+      <div className="grid grid-cols-4 gap-3">
+        {mobileMenuItems.slice(0, 4).map((item, index) => (
+          <Link
+            key={index}
+            to={item.href}
+            className="flex flex-col items-center justify-center p-2 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow border min-h-[90px]"
+          >
+            <div className={`${item.bgColor} rounded-full p-2 mb-1`}>
+              <item.icon className={`h-5 w-5 ${item.color}`} />
+            </div>
+            {/* Conditionally show name with line break */}
+            <span className="text-xs font-medium bangla-text text-center text-gray-700 leading-tight whitespace-pre-line">
+              {item.name}
+            </span>
+          </Link>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-3 mt-3">
+        {mobileMenuItems.slice(4).map((item, index) => (
+          <Link
+            key={index}
+            to={item.href}
+            className="flex items-start p-3 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow border"
+          >
+            <div className={`${item.bgColor} rounded-full p-2 mr-2 flex-shrink-0 mt-1`}>
+              <item.icon className={`h-5 w-5 ${item.color}`} />
+            </div>
+            {/* Conditionally show name with line break */}
+            <span className="text-xs font-medium bangla-text text-gray-700 leading-tight whitespace-pre-line">
+              {item.name}
+            </span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-green-600 to-green-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -189,7 +284,7 @@ const Home = () => {
                 </span>
               </div>
               <p className="text-green-200 text-lg bangla-text max-w-2xl mx-auto">
-                একটি ্উচ্চতর ইসলামী শিক্ষা, গবেষণা ও দাওয়াহ প্রতিষ্ঠান যেখানে কুরআন-হাদীসের পাশাপাশি 
+                একটি উচ্চতর ইসলামী শিক্ষা, গবেষণা ও দাওয়াহ প্রতিষ্ঠান যেখানে কুরআন-হাদীসের পাশাপাশি 
                 আধুনিক শিক্ষাও প্রদান করা হয়
               </p>
             </div>
@@ -244,7 +339,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Rest of your existing code... */}
       {/* Stats Section */}
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -333,7 +427,6 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Sample Questions - You can replace with actual data from API */}
             <div className="card p-6">
               <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full bangla-text mb-4 inline-block">
                 ইবাদত
@@ -384,6 +477,31 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* CSS for custom animation */}
+      <style jsx>{`
+        @keyframes marquee {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+          animation: marquee 20s linear infinite;
+        }
+        
+        @keyframes slideDown {
+          from {
+            transform: translateY(-20px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        .animate-slideDown {
+          animation: slideDown 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
